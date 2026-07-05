@@ -231,7 +231,7 @@ export default function RecipeBuilderPage() {
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Ingredients
             </span>
-            {!showAddRow && availableIngredients.length > 0 && (
+            {!showAddRow && allIngredients.length > 0 && availableIngredients.length > 0 && (
               <button
                 className="btn btn-secondary btn-sm"
                 onClick={() => setShowAddRow(true)}
@@ -242,9 +242,23 @@ export default function RecipeBuilderPage() {
           </div>
 
           {recipeIngredients.length === 0 && !showAddRow ? (
-            <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)', fontSize: 14 }}>
-              <ShoppingBasket size={28} style={{ margin: '0 auto 8px', display: 'block', opacity: 0.5 }} />
-              No ingredients added yet
+            <div style={{ textAlign: 'center', padding: '24px 0' }}>
+              <ShoppingBasket size={28} color="var(--text-muted)" style={{ margin: '0 auto 8px', display: 'block', opacity: 0.5 }} />
+              {allIngredients.length === 0 ? (
+                <>
+                  <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 12 }}>No ingredients in your app yet</div>
+                  <Link href="/ingredients" className="btn btn-secondary btn-sm">
+                    <Plus size={14} /> Add Ingredients First
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 12 }}>No ingredients added yet</div>
+                  <button className="btn btn-primary btn-sm" onClick={() => setShowAddRow(true)}>
+                    <Plus size={14} /> Add Ingredient
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
