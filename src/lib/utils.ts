@@ -24,18 +24,32 @@ export function suggestedPrice(costPerUnit: number, targetMarginPct: number): nu
 }
 
 /**
- * Compute total cost for a scaled batch.
+ * Compute total cost for a scaled batch (ingredients + labor).
  */
 export function scaledTotalCost(
   recipeIngredients: { quantity_at_base: number; ingredient?: { cost_per_unit: number } }[],
   baseBatchSize: number,
-  targetBatchSize: number
+  targetBatchSize: number,
+  laborTimeMins = 0,
+  laborRatePerHour = 0
 ): number {
-  return recipeIngredients.reduce((total, ri) => {
+  const ingredientCost = recipeIngredients.reduce((total, ri) => {
     const costPerUnit = ri.ingredient?.cost_per_unit ?? 0;
     const scaledQty = scaleQty(ri.quantity_at_base, baseBatchSize, targetBatchSize);
     return total + scaledQty * costPerUnit;
   }, 0);
+
+  const baseLaborCost = (laborTimeMins / 60) * laborRatePerHour;
+  const scaledLaborCost = baseBatchSize > 0 ? (baseLaborCost / baseBatchSize) * targetBatchSize : 0;
+
+  return ingredientCost + scaledLaborCost;
+}
+
+/**
+ * Calculate the base labor cost for a recipe.
+ */
+export function calculateLaborCost(laborTimeMins: number, laborRatePerHour: number): number {
+  return (laborTimeMins / 60) * laborRatePerHour;
 }
 
 /**

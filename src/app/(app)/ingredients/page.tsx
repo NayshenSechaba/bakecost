@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
 
+import { useAuth } from '@/lib/contexts/AuthContext';
+
 const UNITS: Unit[] = ['g', 'kg', 'ml', 'l', 'unit'];
 
 const EMPTY_FORM = {
@@ -28,6 +30,7 @@ const EMPTY_FORM = {
 export default function IngredientsPage() {
   const supabase = createClient();
   const { toasts, addToast } = useToast();
+  const { bakeryId } = useAuth();
 
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,15 +41,21 @@ export default function IngredientsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    if (!bakeryId) return;
     const { data } = await supabase
       .from('ingredients')
       .select('*')
+      .eq('bakery_id', bakeryId)
       .order('name', { ascending: true });
     setIngredients(data ?? []);
     setLoading(false);
-  }, []);
+  }, [bakeryId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (bakeryId) {
+      load();
+    }
+  }, [bakeryId, load]);
 
   function openAdd() {
     setEditing(null);
@@ -73,6 +82,7 @@ export default function IngredientsPage() {
   }
 
   async function handleSave() {
+    if (!bakeryId) return;
     if (!form.name.trim()) { addToast('Name is required', 'error'); return; }
     if (!form.cost_per_unit || isNaN(Number(form.cost_per_unit))) { addToast('Enter a valid cost', 'error'); return; }
 
@@ -83,10 +93,11 @@ export default function IngredientsPage() {
       cost_per_unit: Number(form.cost_per_unit),
       current_stock: Number(form.current_stock) || 0,
       low_stock_threshold: Number(form.low_stock_threshold) || 0,
+      bakery_id: bakeryId,
     };
 
     const { error } = editing
-      ? await supabase.from('ingredients').update(payload).eq('id', editing.id)
+      ? await supabase.from('ingredients').update(payload).eq('id', editing.id).eq('bakery_id', bakeryId)
       : await supabase.from('ingredients').insert(payload);
 
     if (error) {
@@ -100,7 +111,8 @@ export default function IngredientsPage() {
   }
 
   async function handleDelete(id: string) {
-    const { error } = await supabase.from('ingredients').delete().eq('id', id);
+    if (!bakeryId) return;
+    const { error } = await supabase.from('ingredients').delete().eq('id', id).eq('bakery_id', bakeryId);
     if (error) {
       addToast('Cannot delete — ingredient may be used in a recipe', 'error');
     } else {

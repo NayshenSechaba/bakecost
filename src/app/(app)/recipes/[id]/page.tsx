@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Ingredient, RecipeIngredient } from '@/types';
-import { formatZAR, unitLabel } from '@/lib/utils';
+import { formatZAR, unitLabel, calculateLaborCost } from '@/lib/utils';
 import {
   ArrowLeft,
   Plus,
@@ -12,8 +12,10 @@ import {
   Check,
   ChefHat,
   ShoppingBasket,
+  Clock,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
 
 export default function RecipeBuilderPage() {
@@ -22,17 +24,21 @@ export default function RecipeBuilderPage() {
   const isNew = params.id === 'new';
   const supabase = createClient();
   const { toasts, addToast } = useToast();
+  const { bakeryId } = useAuth();
 
   const [recipeName, setRecipeName] = useState('');
   const [baseBatchSize, setBaseBatchSize] = useState('12');
   const [targetMargin, setTargetMargin] = useState('60');
+  const [laborTimeMins, setLaborTimeMins] = useState('0');
+  const [laborRatePerHour, setLaborRatePerHour] = useState('0');
+  
   const [recipeIngredients, setRecipeIngredients] = useState<
     (Partial<RecipeIngredient> & { ingredient?: Ingredient; _tempId?: string })[]
   >([]);
 
   const [allIngredients, setAllIngredients] = useState<Ingredient[]>([]);
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(!isNew);
+  const [loading, setLoading] = useState(true);
 
   // Add ingredient row state
   const [addIngId, setAddIngId] = useState('');
@@ -40,7 +46,14 @@ export default function RecipeBuilderPage() {
   const [showAddRow, setShowAddRow] = useState(false);
 
   const load = useCallback(async () => {
-    const { data: ings } = await supabase.from('ingredients').select('*').order('name');
+    if (!bakeryId) return;
+
+    // Load ingredients belonging to user's bakery
+    const { data: ings } = await supabase
+      .from('ingredients')
+      .select('*')
+      .eq('bakery_id', bakeryId)
+      .order('name');
     setAllIngredients(ings ?? []);
 
     if (!isNew) {
@@ -48,22 +61,32 @@ export default function RecipeBuilderPage() {
         .from('recipes')
         .select('*')
         .eq('id', params.id)
+        .eq('bakery_id', bakeryId)
         .single();
+        
       if (recipe) {
         setRecipeName(recipe.name);
         setBaseBatchSize(String(recipe.base_batch_size));
         setTargetMargin(String(recipe.target_margin_pct));
+        setLaborTimeMins(String(recipe.labor_time_mins ?? 0));
+        setLaborRatePerHour(String(recipe.labor_rate_per_hour ?? 0));
       }
+      
       const { data: ris } = await supabase
         .from('recipe_ingredients')
         .select('*, ingredient:ingredients(*)')
         .eq('recipe_id', params.id);
+        
       setRecipeIngredients(ris ?? []);
-      setLoading(false);
     }
-  }, [isNew, params.id]);
+    setLoading(false);
+  }, [isNew, params.id, bakeryId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (bakeryId) {
+      load();
+    }
+  }, [bakeryId, load]);
 
   function addIngredientRow() {
     if (!addIngId) { addToast('Select an ingredient', 'error'); return; }
@@ -93,12 +116,16 @@ export default function RecipeBuilderPage() {
     setRecipeIngredients((prev) => prev.filter((_, i) => i !== index));
   }
 
-  const baseCost = recipeIngredients.reduce((sum, ri) => {
+  const baseIngredientCost = recipeIngredients.reduce((sum, ri) => {
     const cpu = ri.ingredient?.cost_per_unit ?? 0;
     return sum + (ri.quantity_at_base ?? 0) * cpu;
   }, 0);
 
+  const baseLaborCost = calculateLaborCost(Number(laborTimeMins) || 0, Number(laborRatePerHour) || 0);
+  const baseCost = baseIngredientCost + baseLaborCost;
+
   async function handleSave() {
+    if (!bakeryId) return;
     if (!recipeName.trim()) { addToast('Recipe name required', 'error'); return; }
     if (!baseBatchSize || Number(baseBatchSize) <= 0) { addToast('Enter a valid batch size', 'error'); return; }
     if (recipeIngredients.length === 0) { addToast('Add at least one ingredient', 'error'); return; }
@@ -111,6 +138,9 @@ export default function RecipeBuilderPage() {
       name: recipeName.trim(),
       base_batch_size: Number(baseBatchSize),
       target_margin_pct: Number(targetMargin) || 60,
+      labor_time_mins: Number(laborTimeMins) || 0,
+      labor_rate_per_hour: Number(laborRatePerHour) || 0,
+      bakery_id: bakeryId,
     };
 
     if (isNew) {
@@ -129,7 +159,8 @@ export default function RecipeBuilderPage() {
       const { error } = await supabase
         .from('recipes')
         .update(recipePayload)
-        .eq('id', recipeId!);
+        .eq('id', recipeId!)
+        .eq('bakery_id', bakeryId);
       if (error) {
         addToast('Failed to update recipe', 'error');
         setSaving(false);
@@ -197,6 +228,7 @@ export default function RecipeBuilderPage() {
                 onChange={(e) => setRecipeName(e.target.value)}
               />
             </div>
+            
             <div className="grid-2">
               <div className="input-group">
                 <label className="input-label">Base Batch (units)</label>
@@ -222,6 +254,46 @@ export default function RecipeBuilderPage() {
                 />
               </div>
             </div>
+
+            <div className="divider" style={{ margin: '4px 0' }} />
+            
+            {/* Labor fields */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+              <Clock size={16} color="var(--accent)" />
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Labor & Prep Costing
+              </span>
+            </div>
+
+            <div className="grid-2">
+              <div className="input-group">
+                <label className="input-label">Prep Time (minutes)</label>
+                <input
+                  className="input"
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={laborTimeMins}
+                  onChange={(e) => setLaborTimeMins(e.target.value)}
+                />
+              </div>
+              <div className="input-group">
+                <label className="input-label">Labor Rate (R / hour)</label>
+                <input
+                  className="input"
+                  type="number"
+                  min="0"
+                  placeholder="0.00"
+                  value={laborRatePerHour}
+                  onChange={(e) => setLaborRatePerHour(e.target.value)}
+                />
+              </div>
+            </div>
+            {baseLaborCost > 0 && (
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                Base labor cost: <strong>{formatZAR(baseLaborCost)}</strong> for {laborTimeMins} mins
+              </div>
+            )}
           </div>
         </div>
 
@@ -247,7 +319,7 @@ export default function RecipeBuilderPage() {
               {allIngredients.length === 0 ? (
                 <>
                   <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 12 }}>No ingredients in your app yet</div>
-                  <Link href="/ingredients" className="btn btn-secondary btn-sm">
+                  <Link href="/inventory" className="btn btn-secondary btn-sm">
                     <Plus size={14} /> Add Ingredients First
                   </Link>
                 </>
@@ -313,7 +385,7 @@ export default function RecipeBuilderPage() {
               </div>
               {allIngredients.length === 0 && (
                 <p style={{ fontSize: 12, color: 'var(--warning)' }}>
-                  ⚠️ No ingredients yet. <Link href="/ingredients" style={{ color: 'var(--accent)' }}>Add some first</Link>
+                  ⚠️ No ingredients yet. <Link href="/inventory" style={{ color: 'var(--accent)' }}>Add some first</Link>
                 </p>
               )}
               <div style={{ display: 'flex', gap: 8 }}>
@@ -329,16 +401,35 @@ export default function RecipeBuilderPage() {
         {/* Cost preview */}
         {recipeIngredients.length > 0 && (
           <div className="card" style={{ background: 'var(--accent-subtle)', borderColor: 'rgba(232,168,56,0.2)' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
               Cost Preview (base batch)
             </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+              <div className="flex-between" style={{ fontSize: 14 }}>
+                <span className="text-secondary">Ingredients:</span>
+                <span className="font-semibold">{formatZAR(baseIngredientCost)}</span>
+              </div>
+              <div className="flex-between" style={{ fontSize: 14 }}>
+                <span className="text-secondary">Labor Time Cost:</span>
+                <span className="font-semibold">{formatZAR(baseLaborCost)}</span>
+              </div>
+              <div className="divider" />
+              <div className="flex-between">
+                <span className="font-bold" style={{ color: 'var(--text-primary)' }}>Total Cost:</span>
+                <span className="font-bold text-accent" style={{ fontSize: 18 }}>{formatZAR(baseCost)}</span>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
               <div>
-                <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--accent)' }}>{formatZAR(baseCost)}</div>
-                <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--accent)' }}>
                   {baseBatchSize && Number(baseBatchSize) > 0
                     ? `${formatZAR(baseCost / Number(baseBatchSize))} per unit`
                     : 'Set batch size'}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                  Based on yield of {baseBatchSize} units
                 </div>
               </div>
               <ChefHat size={32} color="var(--accent)" style={{ opacity: 0.4 }} />
@@ -350,6 +441,7 @@ export default function RecipeBuilderPage() {
           className="btn btn-primary btn-full btn-lg"
           onClick={handleSave}
           disabled={saving}
+          style={{ marginTop: 8 }}
         >
           {saving ? <div className="spinner" /> : <Check size={18} />}
           {saving ? 'Saving…' : isNew ? 'Create Recipe' : 'Save Changes'}

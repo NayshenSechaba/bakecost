@@ -11,6 +11,7 @@ import {
   suggestedPrice,
   scaledTotalCost,
   unitLabel,
+  calculateLaborCost,
 } from '@/lib/utils';
 import {
   ArrowLeft,
@@ -20,8 +21,12 @@ import {
   ChefHat,
   Check,
   X,
+  Clock,
+  Briefcase,
+  DollarSign,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 type RI = RecipeIngredient & { ingredient: Ingredient };
 
@@ -30,6 +35,7 @@ export default function ScaleDetailPage() {
   const router = useRouter();
   const supabase = createClient();
   const { toasts, addToast } = useToast();
+  const { bakeryId } = useAuth();
 
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [ris, setRis] = useState<RI[]>([]);
@@ -43,10 +49,13 @@ export default function ScaleDetailPage() {
   const [logging, setLogging] = useState(false);
 
   const load = useCallback(async () => {
+    if (!bakeryId) return;
+
     const { data: r } = await supabase
       .from('recipes')
       .select('*')
       .eq('id', params.id)
+      .eq('bakery_id', bakeryId)
       .single();
 
     const { data: riData } = await supabase
@@ -61,25 +70,60 @@ export default function ScaleDetailPage() {
     }
     setRis((riData as RI[]) ?? []);
     setLoading(false);
-  }, [params.id]);
+  }, [params.id, bakeryId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (bakeryId) {
+      load();
+    }
+  }, [bakeryId, load]);
 
-  const totalCost = useMemo(() => {
-    if (!recipe) return 0;
-    return scaledTotalCost(ris, recipe.base_batch_size, batchSize);
+  const scaleFactor = useMemo(() => {
+    if (!recipe || recipe.base_batch_size <= 0) return 1;
+    return batchSize / recipe.base_batch_size;
+  }, [recipe, batchSize]);
+
+  // Costs calculation
+  const ingredientCost = useMemo(() => {
+    return ris.reduce((sum, ri) => {
+      const cpu = ri.ingredient.cost_per_unit;
+      const scaledQ = scaleQty(ri.quantity_at_base, recipe?.base_batch_size ?? 1, batchSize);
+      return sum + scaledQ * cpu;
+    }, 0);
   }, [ris, recipe, batchSize]);
 
-  const costPerUnit = batchSize > 0 ? totalCost / batchSize : 0;
-  const price = recipe ? suggestedPrice(costPerUnit, recipe.target_margin_pct) : 0;
-  const scaleFactor = recipe && recipe.base_batch_size > 0 ? batchSize / recipe.base_batch_size : 1;
+  const baseLaborCost = useMemo(() => {
+    if (!recipe) return 0;
+    return calculateLaborCost(recipe.labor_time_mins, recipe.labor_rate_per_hour);
+  }, [recipe]);
+
+  const scaledLaborCost = useMemo(() => {
+    return baseLaborCost * scaleFactor;
+  }, [baseLaborCost, scaleFactor]);
+
+  const totalCost = useMemo(() => {
+    return ingredientCost + scaledLaborCost;
+  }, [ingredientCost, scaledLaborCost]);
+
+  const costPerUnit = useMemo(() => {
+    return batchSize > 0 ? totalCost / batchSize : 0;
+  }, [totalCost, batchSize]);
+
+  const price = useMemo(() => {
+    return recipe ? suggestedPrice(costPerUnit, recipe.target_margin_pct) : 0;
+  }, [recipe, costPerUnit]);
+
+  const scaledLaborTimeMins = useMemo(() => {
+    if (!recipe) return 0;
+    return recipe.labor_time_mins * scaleFactor;
+  }, [recipe, scaleFactor]);
 
   function adjustBatch(delta: number) {
     setBatchSize((prev) => Math.max(1, Math.round(prev + delta)));
   }
 
   async function handleLog() {
-    if (!recipe) return;
+    if (!recipe || !bakeryId) return;
     setLogging(true);
 
     // 1. Insert production log
@@ -89,6 +133,7 @@ export default function ScaleDetailPage() {
       total_cost: totalCost,
       notes: logNotes.trim() || null,
       date: new Date().toISOString(),
+      bakery_id: bakeryId,
     });
 
     if (logErr) {
@@ -104,7 +149,8 @@ export default function ScaleDetailPage() {
       await supabase
         .from('ingredients')
         .update({ current_stock: newStock })
-        .eq('id', ri.ingredient_id);
+        .eq('id', ri.ingredient_id)
+        .eq('bakery_id', bakeryId);
     });
 
     await Promise.all(updates);
@@ -224,7 +270,6 @@ export default function ScaleDetailPage() {
               min="1"
               placeholder="Custom"
               style={{ width: 90, padding: '8px 10px', fontSize: 13 }}
-              value=""
               onChange={(e) => {
                 const v = parseInt(e.target.value);
                 if (!isNaN(v) && v > 0) setBatchSize(v);
@@ -256,6 +301,32 @@ export default function ScaleDetailPage() {
             })}
           </div>
         )}
+
+        {/* Cost & Labor Breakdown Details */}
+        <div className="card">
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+            Cost Breakdown
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="flex-between">
+              <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ChefHat size={16} /> Ingredients Cost
+              </span>
+              <span className="font-semibold">{formatZAR(ingredientCost)}</span>
+            </div>
+            <div className="flex-between">
+              <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Clock size={16} /> Labor Cost ({Math.round(scaledLaborTimeMins)} mins)
+              </span>
+              <span className="font-semibold">{formatZAR(scaledLaborCost)}</span>
+            </div>
+            <div className="divider" />
+            <div className="flex-between">
+              <span className="font-bold" style={{ color: 'var(--text-primary)' }}>Grand Total Cost</span>
+              <span className="font-bold text-accent" style={{ fontSize: 16 }}>{formatZAR(totalCost)}</span>
+            </div>
+          </div>
+        </div>
 
         {/* Price summary */}
         <div className="price-cards">

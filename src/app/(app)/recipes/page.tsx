@@ -15,26 +15,36 @@ import {
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
 
+import { useAuth } from '@/lib/contexts/AuthContext';
+
 export default function RecipesPage() {
   const supabase = createClient();
   const { toasts, addToast } = useToast();
+  const { bakeryId } = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    if (!bakeryId) return;
     const { data } = await supabase
       .from('recipes')
       .select('*')
+      .eq('bakery_id', bakeryId)
       .order('created_at', { ascending: false });
     setRecipes(data ?? []);
     setLoading(false);
-  }, []);
+  }, [bakeryId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (bakeryId) {
+      load();
+    }
+  }, [bakeryId, load]);
 
   async function handleDelete(id: string) {
-    const { error } = await supabase.from('recipes').delete().eq('id', id);
+    if (!bakeryId) return;
+    const { error } = await supabase.from('recipes').delete().eq('id', id).eq('bakery_id', bakeryId);
     if (error) {
       addToast('Could not delete recipe', 'error');
     } else {

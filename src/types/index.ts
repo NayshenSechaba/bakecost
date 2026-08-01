@@ -1,5 +1,18 @@
 export type Unit = 'g' | 'kg' | 'ml' | 'l' | 'unit';
 
+export interface Bakery {
+  id: string;
+  name: string;
+  created_at?: string;
+}
+
+export interface Profile {
+  id: string;
+  bakery_id: string;
+  role: 'owner' | 'staff';
+  created_at?: string;
+}
+
 export interface Ingredient {
   id: string;
   bakery_id?: string;
@@ -17,6 +30,8 @@ export interface Recipe {
   name: string;
   base_batch_size: number;
   target_margin_pct: number;
+  labor_time_mins: number;
+  labor_rate_per_hour: number;
   created_at?: string;
 }
 
@@ -42,9 +57,14 @@ export interface ProductionLog {
 
 export interface RecipeCost {
   recipe_id: string;
+  bakery_id?: string;
   recipe_name: string;
   base_batch_size: number;
   target_margin_pct: number;
+  labor_time_mins: number;
+  labor_rate_per_hour: number;
+  base_ingredient_cost: number;
+  base_labor_cost: number;
   base_total_cost: number;
   cost_per_unit: number;
 }
