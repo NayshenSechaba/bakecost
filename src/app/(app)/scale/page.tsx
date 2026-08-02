@@ -11,30 +11,23 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
-import { useAuth } from '@/lib/contexts/AuthContext';
-
 export default function ScalePickerPage() {
   const supabase = createClient();
-  const { bakeryId } = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    if (!bakeryId) return;
     const { data } = await supabase
       .from('recipes')
       .select('*')
-      .eq('bakery_id', bakeryId)
       .order('created_at', { ascending: false });
     setRecipes(data ?? []);
     setLoading(false);
-  }, [bakeryId]);
+  }, []);
 
   useEffect(() => {
-    if (bakeryId) {
-      load();
-    }
-  }, [bakeryId, load]);
+    load();
+  }, [load]);
 
   return (
     <>

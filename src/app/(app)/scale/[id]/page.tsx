@@ -26,8 +26,6 @@ import {
   DollarSign,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
-import { useAuth } from '@/lib/contexts/AuthContext';
-
 type RI = RecipeIngredient & { ingredient: Ingredient };
 
 export default function ScaleDetailPage() {
@@ -35,7 +33,6 @@ export default function ScaleDetailPage() {
   const router = useRouter();
   const supabase = createClient();
   const { toasts, addToast } = useToast();
-  const { bakeryId } = useAuth();
 
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [ris, setRis] = useState<RI[]>([]);
@@ -49,13 +46,10 @@ export default function ScaleDetailPage() {
   const [logging, setLogging] = useState(false);
 
   const load = useCallback(async () => {
-    if (!bakeryId) return;
-
     const { data: r } = await supabase
       .from('recipes')
       .select('*')
       .eq('id', params.id)
-      .eq('bakery_id', bakeryId)
       .single();
 
     const { data: riData } = await supabase
@@ -70,13 +64,11 @@ export default function ScaleDetailPage() {
     }
     setRis((riData as RI[]) ?? []);
     setLoading(false);
-  }, [params.id, bakeryId]);
+  }, [params.id]);
 
   useEffect(() => {
-    if (bakeryId) {
-      load();
-    }
-  }, [bakeryId, load]);
+    load();
+  }, [load]);
 
   const scaleFactor = useMemo(() => {
     if (!recipe || recipe.base_batch_size <= 0) return 1;
@@ -123,7 +115,7 @@ export default function ScaleDetailPage() {
   }
 
   async function handleLog() {
-    if (!recipe || !bakeryId) return;
+    if (!recipe) return;
     setLogging(true);
 
     // 1. Insert production log
@@ -133,7 +125,6 @@ export default function ScaleDetailPage() {
       total_cost: totalCost,
       notes: logNotes.trim() || null,
       date: new Date().toISOString(),
-      bakery_id: bakeryId,
     });
 
     if (logErr) {
@@ -149,8 +140,7 @@ export default function ScaleDetailPage() {
       await supabase
         .from('ingredients')
         .update({ current_stock: newStock })
-        .eq('id', ri.ingredient_id)
-        .eq('bakery_id', bakeryId);
+        .eq('id', ri.ingredient_id);
     });
 
     await Promise.all(updates);

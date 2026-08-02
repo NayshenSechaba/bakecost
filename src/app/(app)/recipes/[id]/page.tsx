@@ -15,7 +15,6 @@ import {
   Clock,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
-import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
 
 export default function RecipeBuilderPage() {
@@ -24,7 +23,6 @@ export default function RecipeBuilderPage() {
   const isNew = params.id === 'new';
   const supabase = createClient();
   const { toasts, addToast } = useToast();
-  const { bakeryId } = useAuth();
 
   const [recipeName, setRecipeName] = useState('');
   const [baseBatchSize, setBaseBatchSize] = useState('12');
@@ -46,13 +44,10 @@ export default function RecipeBuilderPage() {
   const [showAddRow, setShowAddRow] = useState(false);
 
   const load = useCallback(async () => {
-    if (!bakeryId) return;
-
-    // Load ingredients belonging to user's bakery
+    // Load all ingredients
     const { data: ings } = await supabase
       .from('ingredients')
       .select('*')
-      .eq('bakery_id', bakeryId)
       .order('name');
     setAllIngredients(ings ?? []);
 
@@ -61,7 +56,6 @@ export default function RecipeBuilderPage() {
         .from('recipes')
         .select('*')
         .eq('id', params.id)
-        .eq('bakery_id', bakeryId)
         .single();
         
       if (recipe) {
@@ -80,13 +74,11 @@ export default function RecipeBuilderPage() {
       setRecipeIngredients(ris ?? []);
     }
     setLoading(false);
-  }, [isNew, params.id, bakeryId]);
+  }, [isNew, params.id]);
 
   useEffect(() => {
-    if (bakeryId) {
-      load();
-    }
-  }, [bakeryId, load]);
+    load();
+  }, [load]);
 
   function addIngredientRow() {
     if (!addIngId) { addToast('Select an ingredient', 'error'); return; }
@@ -125,7 +117,6 @@ export default function RecipeBuilderPage() {
   const baseCost = baseIngredientCost + baseLaborCost;
 
   async function handleSave() {
-    if (!bakeryId) return;
     if (!recipeName.trim()) { addToast('Recipe name required', 'error'); return; }
     if (!baseBatchSize || Number(baseBatchSize) <= 0) { addToast('Enter a valid batch size', 'error'); return; }
     if (recipeIngredients.length === 0) { addToast('Add at least one ingredient', 'error'); return; }
@@ -140,7 +131,6 @@ export default function RecipeBuilderPage() {
       target_margin_pct: Number(targetMargin) || 60,
       labor_time_mins: Number(laborTimeMins) || 0,
       labor_rate_per_hour: Number(laborRatePerHour) || 0,
-      bakery_id: bakeryId,
     };
 
     if (isNew) {
@@ -159,8 +149,7 @@ export default function RecipeBuilderPage() {
       const { error } = await supabase
         .from('recipes')
         .update(recipePayload)
-        .eq('id', recipeId!)
-        .eq('bakery_id', bakeryId);
+        .eq('id', recipeId!);
       if (error) {
         addToast('Failed to update recipe', 'error');
         setSaving(false);

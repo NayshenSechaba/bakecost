@@ -1,1 +1,1 @@
-feat: implement multi-tenancy auth and recipe labor costing features
+revert: remove auth screens and disable database RLS/multi-tenancy for now

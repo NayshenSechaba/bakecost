@@ -16,13 +16,10 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
-import { useAuth } from '@/lib/contexts/AuthContext';
-import { LogOut } from 'lucide-react';
 
 export default function DashboardPage() {
   const supabase = createClient();
   const { toasts } = useToast();
-  const { bakeryId, bakeryName, signOut } = useAuth();
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [lowStock, setLowStock] = useState<Ingredient[]>([]);
@@ -30,19 +27,15 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!bakeryId) return;
-
     async function load() {
       const [recipesRes, logsRes] = await Promise.all([
         supabase
           .from('recipes')
           .select('*')
-          .eq('bakery_id', bakeryId)
           .order('created_at', { ascending: false }),
         supabase
           .from('production_log')
           .select('*, recipe:recipes(name)')
-          .eq('bakery_id', bakeryId)
           .order('date', { ascending: false })
           .limit(3),
       ]);
@@ -51,8 +44,7 @@ export default function DashboardPage() {
       
       const allIngredients = await supabase
         .from('ingredients')
-        .select('*')
-        .eq('bakery_id', bakeryId);
+        .select('*');
         
       const low = (allIngredients.data ?? []).filter(
         (i: Ingredient) => i.current_stock <= i.low_stock_threshold
@@ -62,7 +54,7 @@ export default function DashboardPage() {
       setLoading(false);
     }
     load();
-  }, [bakeryId]);
+  }, []);
 
   const today = new Date().toLocaleDateString('en-ZA', {
     weekday: 'long',
@@ -76,26 +68,16 @@ export default function DashboardPage() {
 
       {/* Header */}
       <div style={{ padding: '28px 20px 20px', background: 'linear-gradient(180deg, #2a1f0e 0%, var(--bg-surface) 100%)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
           <div style={{
             width: 40, height: 40, borderRadius: 12,
             background: 'linear-gradient(135deg, var(--accent), var(--accent-dim))',
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20
           }}>🥐</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{today}</div>
-            <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {bakeryName ?? 'My Bakery'}
-            </h1>
+          <div>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>{today}</div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' }}>BakeCost</h1>
           </div>
-          <button 
-            onClick={signOut} 
-            className="btn btn-ghost" 
-            style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 6 }}
-            title="Sign Out"
-          >
-            <LogOut size={18} />
-          </button>
         </div>
       </div>
 
