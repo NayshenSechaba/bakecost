@@ -156,16 +156,15 @@ export default function InventoryPage() {
     };
   }, [packPrice, packSize, packUnit, form.unit]);
 
-  function applyCalculatedPrice() {
+  // Auto-sync calculated base cost to form input
+  useEffect(() => {
     if (calculatedCostInfo) {
       setForm((prev) => ({
         ...prev,
         cost_per_unit: calculatedCostInfo.baseCost.toFixed(5),
       }));
-      addToast('Applied converted pack price!', 'success');
-      setShowPackHelper(false);
     }
-  }
+  }, [calculatedCostInfo]);
 
   // Simulated Scanning Engine
   const startScan = (preset: typeof SCAN_PRESETS[0]) => {
@@ -574,7 +573,6 @@ export default function InventoryPage() {
                         </div>
                       </div>
                     </div>
-
                     {calculatedCostInfo ? (
                       <div style={{ 
                         background: 'var(--accent-subtle)', 
@@ -582,22 +580,18 @@ export default function InventoryPage() {
                         padding: '10px 12px', 
                         fontSize: 13, 
                         color: 'var(--text-primary)',
-                        border: '1px solid rgba(232, 168, 56, 0.2)'
+                        border: '1px solid rgba(232, 168, 56, 0.2)',
+                        marginTop: 12
                       }}>
                         <div style={{ fontWeight: 600, color: 'var(--accent)', marginBottom: 4 }}>Live calculation:</div>
                         • Pack rate: <strong>R {calculatedCostInfo.pricePerPackUnit.toFixed(2)}</strong> per {packUnit} <br />
                         • Cost per base unit: <strong>R {calculatedCostInfo.baseCost.toFixed(5)}</strong> per {form.unit}
-                        <button
-                          type="button"
-                          className="btn btn-primary btn-sm btn-full"
-                          style={{ marginTop: 8 }}
-                          onClick={applyCalculatedPrice}
-                        >
-                          Use Calculated Price
-                        </button>
+                        <div style={{ marginTop: 6, fontSize: 11, color: 'var(--success)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Check size={12} /> Automatically applied to Cost input!
+                        </div>
                       </div>
                     ) : (
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 12 }}>
                         Enter price paid and pack size to auto-calculate base unit cost.
                       </div>
                     )}
