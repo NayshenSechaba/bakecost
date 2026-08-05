@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Ingredient, RecipeIngredient } from '@/types';
@@ -13,6 +13,7 @@ import {
   ChefHat,
   ShoppingBasket,
   Clock,
+  X,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
 import Link from 'next/link';
@@ -37,6 +38,47 @@ export default function RecipeBuilderPage() {
   const [allIngredients, setAllIngredients] = useState<Ingredient[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Margin Calculator States
+  const [showMarginModal, setShowMarginModal] = useState(false);
+  const [rent, setRent] = useState('');
+  const [electricity, setElectricity] = useState('');
+  const [transport, setTransport] = useState('');
+  const [otherOverheads, setOtherOverheads] = useState('');
+  const [monthlyIngredients, setMonthlyIngredients] = useState('');
+  const [desiredProfit, setDesiredProfit] = useState('');
+
+  const recommendedMarginInfo = useMemo(() => {
+    const r = parseFloat(rent) || 0;
+    const e = parseFloat(electricity) || 0;
+    const t = parseFloat(transport) || 0;
+    const o = parseFloat(otherOverheads) || 0;
+    const ing = parseFloat(monthlyIngredients) || 0;
+    const profit = parseFloat(desiredProfit) || 0;
+
+    const totalOverheads = r + e + t + o;
+    const totalRevenueNeeded = ing + totalOverheads + profit;
+
+    if (totalRevenueNeeded <= 0 || ing <= 0) return null;
+
+    const margin = ((totalOverheads + profit) / totalRevenueNeeded) * 100;
+    return {
+      margin: Math.round(margin),
+      totalOverheads,
+      totalRevenueNeeded,
+      ingredientsPercent: (ing / totalRevenueNeeded) * 100,
+      overheadsPercent: (totalOverheads / totalRevenueNeeded) * 100,
+      profitPercent: (profit / totalRevenueNeeded) * 100,
+    };
+  }, [rent, electricity, transport, otherOverheads, monthlyIngredients, desiredProfit]);
+
+  function applyRecommendedMargin() {
+    if (recommendedMarginInfo) {
+      setTargetMargin(String(recommendedMarginInfo.margin));
+      addToast(`Applied ${recommendedMarginInfo.margin}% margin to recipe!`, 'success');
+      setShowMarginModal(false);
+    }
+  }
 
   // Add ingredient row state
   const [addIngId, setAddIngId] = useState('');
@@ -231,7 +273,16 @@ export default function RecipeBuilderPage() {
                 />
               </div>
               <div className="input-group">
-                <label className="input-label">Target Margin %</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <label className="input-label" style={{ margin: 0 }}>Target Margin %</label>
+                  <button
+                    type="button"
+                    style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 11, fontWeight: 600, padding: 0, cursor: 'pointer' }}
+                    onClick={() => setShowMarginModal(true)}
+                  >
+                    📊 Overheads Calculator
+                  </button>
+                </div>
                 <input
                   className="input"
                   type="number"
@@ -437,6 +488,134 @@ export default function RecipeBuilderPage() {
         </button>
 
       </div>
+
+      {/* Overheads & Target Margin Calculator Modal */}
+      {showMarginModal && (
+        <div className="modal-overlay" onClick={() => setShowMarginModal(false)}>
+          <div className="modal-sheet" style={{ maxHeight: '85dvh', overflowY: 'auto' }}>
+            <div className="modal-handle" />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h2 className="modal-title" style={{ margin: 0 }}>Overheads & Margin Helper</h2>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setShowMarginModal(false)} style={{ padding: '6px 8px' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+                This calculator helps you find the right markup margin % to cover your monthly bakery bills and salary, so you don't run at a loss!
+              </p>
+
+              {/* Monthly overhead inputs */}
+              <div style={{ border: '1px solid var(--border-light)', borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Step 1: Your Monthly Bills (Overheads)
+                </span>
+                
+                <div className="grid-2">
+                  <div className="input-group">
+                    <label className="input-label">Rent / Space (R)</label>
+                    <input className="input" type="number" placeholder="0" value={rent} onChange={(e) => setRent(e.target.value)} />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Elec & Gas (R)</label>
+                    <input className="input" type="number" placeholder="0" value={electricity} onChange={(e) => setElectricity(e.target.value)} />
+                  </div>
+                </div>
+
+                <div className="grid-2">
+                  <div className="input-group">
+                    <label className="input-label">Transport / Fuel (R)</label>
+                    <input className="input" type="number" placeholder="0" value={transport} onChange={(e) => setTransport(e.target.value)} />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Other Bills (R)</label>
+                    <input className="input" type="number" placeholder="0" value={otherOverheads} onChange={(e) => setOtherOverheads(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Sales & Ingredients */}
+              <div style={{ border: '1px solid var(--border-light)', borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Step 2: Monthly Business Size
+                </span>
+                
+                <div className="input-group">
+                  <label className="input-label">Monthly Ingredients Spend (R)</label>
+                  <input 
+                    className="input" 
+                    type="number" 
+                    placeholder="e.g. 5000" 
+                    value={monthlyIngredients} 
+                    onChange={(e) => setMonthlyIngredients(e.target.value)} 
+                  />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                    Approximate total cost of all raw ingredients you buy per month.
+                  </span>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Your Desired Monthly Salary / Take-Home Profit (R)</label>
+                  <input 
+                    className="input" 
+                    type="number" 
+                    placeholder="e.g. 6000" 
+                    value={desiredProfit} 
+                    onChange={(e) => setDesiredProfit(e.target.value)} 
+                  />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                    How much money you want to take home clean as personal salary.
+                  </span>
+                </div>
+              </div>
+
+              {/* Calculation Result */}
+              {recommendedMarginInfo ? (
+                <div style={{ 
+                  background: 'var(--accent-subtle)', 
+                  borderRadius: 8, 
+                  padding: 14, 
+                  border: '1px solid rgba(232, 168, 56, 0.2)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8
+                }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase' }}>
+                    Recommended Pricing Formula
+                  </div>
+                  
+                  <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--accent)' }}>
+                    {recommendedMarginInfo.margin}% Target Margin
+                  </div>
+
+                  <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.4, marginTop: 4 }}>
+                    <strong>How it works:</strong> <br />
+                    To pay your bills (<strong>{formatZAR(recommendedMarginInfo.totalOverheads)}</strong>) and take home your desired salary (<strong>{formatZAR(parseFloat(desiredProfit) || 0)}</strong>) while buying ingredients (<strong>{formatZAR(parseFloat(monthlyIngredients) || 0)}</strong>), you need to achieve a total monthly revenue of <strong>{formatZAR(recommendedMarginInfo.totalRevenueNeeded)}</strong>.
+                  </div>
+
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', background: 'var(--bg-elevated)', borderRadius: 6, padding: 8, marginTop: 4 }}>
+                    💡 <strong>Simple Rule:</strong> For every R 10.00 you spend on raw ingredients, you must charge your customers at least <strong>{formatZAR(10 / (1 - recommendedMarginInfo.margin / 100))}</strong>. This markup covers your overhead bills and salary!
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-full btn-lg"
+                    style={{ marginTop: 6 }}
+                    onClick={applyRecommendedMargin}
+                  >
+                    Apply {recommendedMarginInfo.margin}% Margin
+                  </button>
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0' }}>
+                  Enter ingredients spend and desired salary above to see recommended markup.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

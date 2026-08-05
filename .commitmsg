@@ -1,1 +1,1 @@
-revert: remove auth screens and disable database RLS/multi-tenancy for now
+feat: add pack price calculator, package ocr scanner, and overhead margin calculator

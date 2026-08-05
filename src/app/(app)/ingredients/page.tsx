@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { formatZAR, unitLabel, stockStatus } from '@/lib/utils';
 import { Ingredient, Unit } from '@/types';
@@ -12,8 +12,13 @@ import {
   X,
   Check,
   AlertTriangle,
+  Camera,
+  RotateCcw,
+  Sparkles,
+  Search,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
+
 const UNITS: Unit[] = ['g', 'kg', 'ml', 'l', 'unit'];
 
 const EMPTY_FORM = {
@@ -23,6 +28,65 @@ const EMPTY_FORM = {
   current_stock: '',
   low_stock_threshold: '',
 };
+
+// South African Package OCR Mock Presets
+const SCAN_PRESETS = [
+  {
+    id: 'flour',
+    brand: 'Sasko',
+    name: 'Sasko Cake Flour',
+    unit: 'g' as Unit,
+    packSize: '2.5',
+    packUnit: 'kg' as Unit,
+    price: '45.00',
+    color: '#de7e35',
+    icon: '🌾',
+  },
+  {
+    id: 'sugar',
+    brand: 'Huletts',
+    name: 'Huletts White Sugar',
+    unit: 'g' as Unit,
+    packSize: '2',
+    packUnit: 'kg' as Unit,
+    price: '42.50',
+    color: '#4a90e2',
+    icon: '🍬',
+  },
+  {
+    id: 'butter',
+    brand: 'Clover',
+    name: 'Clover Butter',
+    unit: 'g' as Unit,
+    packSize: '500',
+    packUnit: 'g' as Unit,
+    price: '85.00',
+    color: '#f8e71c',
+    icon: '🧈',
+  },
+  {
+    id: 'milk',
+    brand: 'Clover',
+    name: 'Clover Fresh Milk',
+    unit: 'ml' as Unit,
+    packSize: '2',
+    packUnit: 'l' as Unit,
+    price: '38.00',
+    color: '#ffffff',
+    icon: '🥛',
+  },
+  {
+    id: 'eggs',
+    brand: 'Nulaid',
+    name: 'Large Eggs (Tray)',
+    unit: 'unit' as Unit,
+    packSize: '30',
+    packUnit: 'unit' as Unit,
+    price: '90.00',
+    color: '#e69a53',
+    icon: '🥚',
+  },
+];
 
 export default function IngredientsPage() {
   const supabase = createClient();
@@ -35,6 +99,18 @@ export default function IngredientsPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Pack Calculator States
+  const [showPackHelper, setShowPackHelper] = useState(false);
+  const [packPrice, setPackPrice] = useState('');
+  const [packSize, setPackSize] = useState('');
+  const [packUnit, setPackUnit] = useState<Unit>('kg');
+
+  // Scanner States
+  const [showScanner, setShowScanner] = useState(false);
+  const [scanState, setScanState] = useState<'idle' | 'scanning' | 'success'>('idle');
+  const [scanningPreset, setScanningPreset] = useState<typeof SCAN_PRESETS[0] | null>(null);
+  const [scanProgress, setScanProgress] = useState(0);
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -49,9 +125,86 @@ export default function IngredientsPage() {
     load();
   }, [load]);
 
+  // Pack Calculator Live Logic
+  const calculatedCostInfo = useMemo(() => {
+    const price = parseFloat(packPrice);
+    const size = parseFloat(packSize);
+    if (isNaN(price) || isNaN(size) || size <= 0) return null;
+
+    let multiplier = 1;
+    if (form.unit === 'g' && packUnit === 'kg') {
+      multiplier = 1000;
+    } else if (form.unit === 'ml' && packUnit === 'l') {
+      multiplier = 1000;
+    } else if (form.unit === 'kg' && packUnit === 'g') {
+      multiplier = 0.001;
+    } else if (form.unit === 'l' && packUnit === 'ml') {
+      multiplier = 0.001;
+    }
+
+    const baseCost = price / (size * multiplier);
+    return {
+      baseCost,
+      pricePerPackUnit: price / size,
+      multiplier,
+    };
+  }, [packPrice, packSize, packUnit, form.unit]);
+
+  function applyCalculatedPrice() {
+    if (calculatedCostInfo) {
+      setForm((prev) => ({
+        ...prev,
+        cost_per_unit: calculatedCostInfo.baseCost.toFixed(5),
+      }));
+      addToast('Applied converted pack price!', 'success');
+      setShowPackHelper(false);
+    }
+  }
+
+  // Simulated Scanning Engine
+  const startScan = (preset: typeof SCAN_PRESETS[0]) => {
+    setScanningPreset(preset);
+    setScanState('scanning');
+    setScanProgress(0);
+
+    const interval = setInterval(() => {
+      setScanProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setScanState('success');
+          // Auto populate values
+          setForm({
+            name: preset.name,
+            unit: preset.unit,
+            cost_per_unit: (parseFloat(preset.price) / (parseFloat(preset.packSize) * (preset.packUnit === 'kg' || preset.packUnit === 'l' ? 1000 : 1))).toFixed(5),
+            current_stock: preset.packSize, // assume opening stock is 1 pack
+            low_stock_threshold: '1',
+          });
+          setPackPrice(preset.price);
+          setPackSize(preset.packSize);
+          setPackUnit(preset.packUnit);
+          setShowPackHelper(true);
+          
+          addToast(`Successfully scanned ${preset.name}!`, 'success');
+          setTimeout(() => {
+            setShowScanner(false);
+            setScanState('idle');
+            setScanningPreset(null);
+          }, 1000);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 150);
+  };
+
   function openAdd() {
     setEditing(null);
     setForm(EMPTY_FORM);
+    setPackPrice('');
+    setPackSize('');
+    setPackUnit('kg');
+    setShowPackHelper(false);
     setShowModal(true);
   }
 
@@ -64,6 +217,10 @@ export default function IngredientsPage() {
       current_stock: String(ing.current_stock),
       low_stock_threshold: String(ing.low_stock_threshold),
     });
+    setPackPrice('');
+    setPackSize('');
+    setPackUnit(ing.unit === 'g' ? 'kg' : ing.unit === 'ml' ? 'l' : ing.unit);
+    setShowPackHelper(false);
     setShowModal(true);
   }
 
@@ -199,13 +356,24 @@ export default function IngredientsPage() {
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && closeModal()}>
           <div className="modal-sheet">
             <div className="modal-handle" />
+            
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <h2 className="modal-title" style={{ margin: 0 }}>
                 {editing ? 'Edit Ingredient' : 'Add Ingredient'}
               </h2>
-              <button className="btn btn-ghost btn-sm" onClick={closeModal} style={{ padding: '6px 8px' }}>
-                <X size={18} />
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, borderColor: 'var(--accent)', color: 'var(--accent)' }}
+                  onClick={() => setShowScanner(true)}
+                >
+                  <Camera size={14} /> Scan Packaging
+                </button>
+                <button className="btn btn-ghost btn-sm" onClick={closeModal} style={{ padding: '6px 8px' }}>
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -213,7 +381,7 @@ export default function IngredientsPage() {
                 <label className="input-label">Name</label>
                 <input
                   className="input"
-                  placeholder="e.g. Cake flour"
+                  placeholder="e.g. Sasko Cake flour"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
@@ -221,11 +389,12 @@ export default function IngredientsPage() {
 
               <div className="grid-2">
                 <div className="input-group">
-                  <label className="input-label">Unit</label>
+                  <label className="input-label">Base Unit (Recipe uses)</label>
                   <select className="input" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value as Unit })}>
                     {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
                   </select>
                 </div>
+                
                 <div className="input-group">
                   <label className="input-label">Cost per {form.unit} (R)</label>
                   <input
@@ -233,11 +402,92 @@ export default function IngredientsPage() {
                     type="number"
                     step="0.0001"
                     min="0"
-                    placeholder="0.00"
+                    placeholder="e.g. 0.0180"
                     value={form.cost_per_unit}
                     onChange={(e) => setForm({ ...form, cost_per_unit: e.target.value })}
                   />
                 </div>
+              </div>
+
+              {/* Package Cost Calculator Toggle */}
+              <div style={{ background: 'var(--bg-elevated)', border: '1px dashed var(--border-light)', borderRadius: 'var(--radius-sm)', padding: 12 }}>
+                <div 
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                  onClick={() => setShowPackHelper(!showPackHelper)}
+                >
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    🛒 Receipt / Pack Price Helper
+                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--accent)' }}>
+                    {showPackHelper ? 'Hide' : 'Show Calculator'}
+                  </span>
+                </div>
+
+                {showPackHelper && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+                    <div className="grid-2">
+                      <div className="input-group">
+                        <label className="input-label">Pack Cost (Price paid)</label>
+                        <input
+                          className="input"
+                          type="number"
+                          step="0.01"
+                          placeholder="e.g. R45.00"
+                          value={packPrice}
+                          onChange={(e) => setPackPrice(e.target.value)}
+                        />
+                      </div>
+                      <div className="input-group">
+                        <label className="input-label">Pack size & unit</label>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <input
+                            className="input"
+                            type="number"
+                            placeholder="e.g. 2.5"
+                            style={{ flex: 1 }}
+                            value={packSize}
+                            onChange={(e) => setPackSize(e.target.value)}
+                          />
+                          <select 
+                            className="input" 
+                            style={{ width: 85, padding: '12px 6px' }}
+                            value={packUnit}
+                            onChange={(e) => setPackUnit(e.target.value as Unit)}
+                          >
+                            {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {calculatedCostInfo ? (
+                      <div style={{ 
+                        background: 'var(--accent-subtle)', 
+                        borderRadius: 'var(--radius-sm)', 
+                        padding: '10px 12px', 
+                        fontSize: 13, 
+                        color: 'var(--text-primary)',
+                        border: '1px solid rgba(232, 168, 56, 0.2)'
+                      }}>
+                        <div style={{ fontWeight: 600, color: 'var(--accent)', marginBottom: 4 }}>Live calculation:</div>
+                        • Pack rate: <strong>R {calculatedCostInfo.pricePerPackUnit.toFixed(2)}</strong> per {packUnit} <br />
+                        • Cost per base unit: <strong>R {calculatedCostInfo.baseCost.toFixed(5)}</strong> per {form.unit}
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm btn-full"
+                          style={{ marginTop: 8 }}
+                          onClick={applyCalculatedPrice}
+                        >
+                          Use Calculated Price
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                        Enter price paid and pack size to auto-calculate base unit cost. (e.g. R45 paid for a 2.5 kg flour bag converts to R0.018 per gram).
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="grid-2">
@@ -274,6 +524,150 @@ export default function IngredientsPage() {
         </div>
       )}
 
+      {/* Package OCR Label Scanner Simulator Modal */}
+      {showScanner && (
+        <div className="modal-overlay" onClick={() => scanState !== 'scanning' && setShowScanner(false)}>
+          <div className="modal-sheet" style={{ maxWidth: 450 }}>
+            <div className="modal-handle" />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h2 className="modal-title" style={{ margin: 0 }}>Smart Packaging Scanner</h2>
+              <button 
+                className="btn btn-ghost btn-sm" 
+                onClick={() => { setShowScanner(false); setScanState('idle'); }} 
+                disabled={scanState === 'scanning'}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              
+              {/* simulated camera viewport */}
+              <div style={{ 
+                height: 200, 
+                borderRadius: 'var(--radius)', 
+                background: '#0a0908', 
+                border: '2px solid var(--border-light)',
+                position: 'relative',
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                {scanState === 'idle' && (
+                  <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 20 }}>
+                    <Camera size={36} color="var(--accent)" style={{ margin: '0 auto 10px', opacity: 0.7 }} />
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>Select a South African baking package below to simulate scanning labels.</div>
+                  </div>
+                )}
+
+                {scanState === 'scanning' && (
+                  <>
+                    {/* Viewfinder Target Bounding Box */}
+                    <div style={{
+                      position: 'absolute',
+                      width: 140,
+                      height: 140,
+                      border: '2px solid var(--accent)',
+                      borderRadius: 12,
+                      boxShadow: '0 0 0 999px rgba(0,0,0,0.6)',
+                      zIndex: 10,
+                      animation: 'pulse 1.5s infinite',
+                    }} />
+
+                    {/* Scanning Laser Line */}
+                    <div style={{
+                      position: 'absolute',
+                      left: 0,
+                      width: '100%',
+                      height: 3,
+                      background: 'var(--accent)',
+                      boxShadow: '0 0 10px var(--accent)',
+                      zIndex: 20,
+                      animation: 'scan-laser 2s infinite linear',
+                    }} />
+
+                    {/* Dynamic Text Output Overlay */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 12,
+                      left: 12,
+                      background: 'rgba(0,0,0,0.7)',
+                      padding: '4px 8px',
+                      borderRadius: 4,
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                      color: 'var(--accent)',
+                      zIndex: 30,
+                    }}>
+                      [OCR: Processing raw pixels... {scanProgress}%] <br />
+                      {scanProgress > 20 && `• ${scanningPreset?.brand} brand detected`} <br />
+                      {scanProgress > 50 && `• Weight ${scanningPreset?.packSize}${scanningPreset?.packUnit} recognized`} <br />
+                      {scanProgress > 80 && `• Retail Price R${scanningPreset?.price} found`}
+                    </div>
+
+                    <div style={{ fontSize: 44 }}>{scanningPreset?.icon}</div>
+                  </>
+                )}
+
+                {scanState === 'success' && (
+                  <div style={{ textAlign: 'center', color: 'var(--success)' }}>
+                    <div style={{ 
+                      width: 48, height: 48, borderRadius: '50%', background: 'var(--success-bg)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px'
+                    }}>
+                      <Check size={28} />
+                    </div>
+                    <div style={{ fontSize: 16, fontWeight: 700 }}>Scan Successful!</div>
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>{scanningPreset?.name} successfully parsed</div>
+                  </div>
+                )}
+              </div>
+
+              {/* South African Package Selection List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Tap preset package to scan
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  {SCAN_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      style={{ 
+                        justifyContent: 'flex-start', 
+                        padding: '10px 12px',
+                        background: 'var(--bg-card)',
+                        borderColor: 'var(--border)'
+                      }}
+                      onClick={() => scanState !== 'scanning' && startScan(preset)}
+                    >
+                      <span style={{ fontSize: 16, marginRight: 8 }}>{preset.icon}</span>
+                      <div style={{ textAlign: 'left', minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {preset.name}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                          {preset.packSize} {preset.packUnit} @ R {preset.price}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', background: 'var(--accent-subtle)', borderRadius: 8, padding: 10, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <Sparkles size={16} color="var(--accent)" style={{ flexShrink: 0 }} />
+                <span>
+                  <strong>Tip:</strong> In a real setting, mobile users point their camera at a grocery receipt or ingredient label to scan ingredients instantly without manual calculations.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete confirm */}
       {deleteId && (
         <div className="modal-overlay" onClick={() => setDeleteId(null)}>
@@ -293,6 +687,19 @@ export default function IngredientsPage() {
           </div>
         </div>
       )}
+
+      {/* Scan animation styles injected */}
+      <style jsx global>{`
+        @keyframes scan-laser {
+          0% { top: 0%; }
+          50% { top: 98%; }
+          100% { top: 0%; }
+        }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 0.9; }
+          50% { transform: scale(1.03); opacity: 1; }
+        }
+      `}</style>
     </>
   );
 }
