@@ -31,7 +31,8 @@ export function scaledTotalCost(
   baseBatchSize: number,
   targetBatchSize: number,
   laborTimeMins = 0,
-  laborRatePerHour = 0
+  laborRatePerHour = 0,
+  electricityCost = 0
 ): number {
   const ingredientCost = recipeIngredients.reduce((total, ri) => {
     const costPerUnit = ri.ingredient?.cost_per_unit ?? 0;
@@ -41,8 +42,9 @@ export function scaledTotalCost(
 
   const baseLaborCost = (laborTimeMins / 60) * laborRatePerHour;
   const scaledLaborCost = baseBatchSize > 0 ? (baseLaborCost / baseBatchSize) * targetBatchSize : 0;
+  const scaledElectricityCost = baseBatchSize > 0 ? (electricityCost / baseBatchSize) * targetBatchSize : 0;
 
-  return ingredientCost + scaledLaborCost;
+  return ingredientCost + scaledLaborCost + scaledElectricityCost;
 }
 
 /**

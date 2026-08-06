@@ -32,6 +32,7 @@ export interface Recipe {
   target_margin_pct: number;
   labor_time_mins: number;
   labor_rate_per_hour: number;
+  electricity_cost: number;
   created_at?: string;
 }
 
@@ -63,6 +64,7 @@ export interface RecipeCost {
   target_margin_pct: number;
   labor_time_mins: number;
   labor_rate_per_hour: number;
+  electricity_cost: number;
   base_ingredient_cost: number;
   base_labor_cost: number;
   base_total_cost: number;

@@ -93,9 +93,18 @@ export default function ScaleDetailPage() {
     return baseLaborCost * scaleFactor;
   }, [baseLaborCost, scaleFactor]);
 
+  const baseElectricityCost = useMemo(() => {
+    if (!recipe) return 0;
+    return recipe.electricity_cost ?? 0;
+  }, [recipe]);
+
+  const scaledElectricityCost = useMemo(() => {
+    return baseElectricityCost * scaleFactor;
+  }, [baseElectricityCost, scaleFactor]);
+
   const totalCost = useMemo(() => {
-    return ingredientCost + scaledLaborCost;
-  }, [ingredientCost, scaledLaborCost]);
+    return ingredientCost + scaledLaborCost + scaledElectricityCost;
+  }, [ingredientCost, scaledLaborCost, scaledElectricityCost]);
 
   const costPerUnit = useMemo(() => {
     return batchSize > 0 ? totalCost / batchSize : 0;
@@ -310,6 +319,14 @@ export default function ScaleDetailPage() {
               </span>
               <span className="font-semibold">{formatZAR(scaledLaborCost)}</span>
             </div>
+            {scaledElectricityCost > 0 && (
+              <div className="flex-between">
+                <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 14 }}>⚡</span> Electricity Cost
+                </span>
+                <span className="font-semibold">{formatZAR(scaledElectricityCost)}</span>
+              </div>
+            )}
             <div className="divider" />
             <div className="flex-between">
               <span className="font-bold" style={{ color: 'var(--text-primary)' }}>Grand Total Cost</span>

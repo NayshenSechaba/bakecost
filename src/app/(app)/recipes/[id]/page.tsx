@@ -30,6 +30,7 @@ export default function RecipeBuilderPage() {
   const [targetMargin, setTargetMargin] = useState('60');
   const [laborTimeMins, setLaborTimeMins] = useState('0');
   const [laborRatePerHour, setLaborRatePerHour] = useState('0');
+  const [electricityCost, setElectricityCost] = useState('0');
   
   const [recipeIngredients, setRecipeIngredients] = useState<
     (Partial<RecipeIngredient> & { ingredient?: Ingredient; _tempId?: string })[]
@@ -106,6 +107,7 @@ export default function RecipeBuilderPage() {
         setTargetMargin(String(recipe.target_margin_pct));
         setLaborTimeMins(String(recipe.labor_time_mins ?? 0));
         setLaborRatePerHour(String(recipe.labor_rate_per_hour ?? 0));
+        setElectricityCost(String(recipe.electricity_cost ?? 0));
       }
       
       const { data: ris } = await supabase
@@ -156,7 +158,8 @@ export default function RecipeBuilderPage() {
   }, 0);
 
   const baseLaborCost = calculateLaborCost(Number(laborTimeMins) || 0, Number(laborRatePerHour) || 0);
-  const baseCost = baseIngredientCost + baseLaborCost;
+  const baseElectricityCost = Number(electricityCost) || 0;
+  const baseCost = baseIngredientCost + baseLaborCost + baseElectricityCost;
 
   async function handleSave() {
     if (!recipeName.trim()) { addToast('Recipe name required', 'error'); return; }
@@ -173,6 +176,7 @@ export default function RecipeBuilderPage() {
       target_margin_pct: Number(targetMargin) || 60,
       labor_time_mins: Number(laborTimeMins) || 0,
       labor_rate_per_hour: Number(laborRatePerHour) || 0,
+      electricity_cost: Number(electricityCost) || 0,
     };
 
     if (isNew) {
@@ -334,6 +338,24 @@ export default function RecipeBuilderPage() {
                 Base labor cost: <strong>{formatZAR(baseLaborCost)}</strong> for {laborTimeMins} mins
               </div>
             )}
+
+            <div className="divider" style={{ margin: '4px 0' }} />
+
+            <div className="input-group">
+              <label className="input-label">⚡ Electricity Cost per Batch (R)</label>
+              <input
+                className="input"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={electricityCost}
+                onChange={(e) => setElectricityCost(e.target.value)}
+              />
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                Estimated electricity cost to bake one base batch (e.g. oven usage, mixer).
+              </span>
+            </div>
           </div>
         </div>
 
@@ -454,6 +476,12 @@ export default function RecipeBuilderPage() {
                 <span className="text-secondary">Labor Time Cost:</span>
                 <span className="font-semibold">{formatZAR(baseLaborCost)}</span>
               </div>
+              {baseElectricityCost > 0 && (
+                <div className="flex-between" style={{ fontSize: 14 }}>
+                  <span className="text-secondary">Electricity Cost:</span>
+                  <span className="font-semibold">{formatZAR(baseElectricityCost)}</span>
+                </div>
+              )}
               <div className="divider" />
               <div className="flex-between">
                 <span className="font-bold" style={{ color: 'var(--text-primary)' }}>Total Cost:</span>
