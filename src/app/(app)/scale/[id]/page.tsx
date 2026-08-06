@@ -36,6 +36,7 @@ export default function ScaleDetailPage() {
 
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [ris, setRis] = useState<RI[]>([]);
+  const [packagingIngredient, setPackagingIngredient] = useState<Ingredient | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [batchSize, setBatchSize] = useState(0);
@@ -61,6 +62,17 @@ export default function ScaleDetailPage() {
       setRecipe(r);
       setBatchSize(r.base_batch_size);
       setSliderMax(Math.max(r.base_batch_size * 10, 100));
+
+      if (r.packaging_ingredient_id) {
+        const { data: pkg } = await supabase
+          .from('ingredients')
+          .select('*')
+          .eq('id', r.packaging_ingredient_id)
+          .single();
+        setPackagingIngredient(pkg);
+      } else {
+        setPackagingIngredient(null);
+      }
     }
     setRis((riData as RI[]) ?? []);
     setLoading(false);
@@ -102,9 +114,14 @@ export default function ScaleDetailPage() {
     return baseElectricityCost * scaleFactor;
   }, [baseElectricityCost, scaleFactor]);
 
+  const scaledPackagingCost = useMemo(() => {
+    if (!packagingIngredient) return 0;
+    return packagingIngredient.cost_per_unit * batchSize;
+  }, [packagingIngredient, batchSize]);
+
   const totalCost = useMemo(() => {
-    return ingredientCost + scaledLaborCost + scaledElectricityCost;
-  }, [ingredientCost, scaledLaborCost, scaledElectricityCost]);
+    return ingredientCost + scaledLaborCost + scaledElectricityCost + scaledPackagingCost;
+  }, [ingredientCost, scaledLaborCost, scaledElectricityCost, scaledPackagingCost]);
 
   const costPerUnit = useMemo(() => {
     return batchSize > 0 ? totalCost / batchSize : 0;
@@ -151,6 +168,16 @@ export default function ScaleDetailPage() {
         .update({ current_stock: newStock })
         .eq('id', ri.ingredient_id);
     });
+
+    if (packagingIngredient) {
+      updates.push((async () => {
+        const newPkgStock = Math.max(0, packagingIngredient.current_stock - batchSize);
+        await supabase
+          .from('ingredients')
+          .update({ current_stock: newPkgStock })
+          .eq('id', packagingIngredient.id);
+      })());
+    }
 
     await Promise.all(updates);
 
@@ -325,6 +352,14 @@ export default function ScaleDetailPage() {
                   <span style={{ fontSize: 14 }}>⚡</span> Electricity Cost
                 </span>
                 <span className="font-semibold">{formatZAR(scaledElectricityCost)}</span>
+              </div>
+            )}
+            {scaledPackagingCost > 0 && (
+              <div className="flex-between">
+                <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 14 }}>📦</span> Packaging Cost
+                </span>
+                <span className="font-semibold">{formatZAR(scaledPackagingCost)}</span>
               </div>
             )}
             <div className="divider" />

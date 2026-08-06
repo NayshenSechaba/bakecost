@@ -31,6 +31,7 @@ export default function RecipeBuilderPage() {
   const [laborTimeMins, setLaborTimeMins] = useState('0');
   const [laborRatePerHour, setLaborRatePerHour] = useState('0');
   const [electricityCost, setElectricityCost] = useState('0');
+  const [packagingIngredientId, setPackagingIngredientId] = useState<string>('');
   
   const [recipeIngredients, setRecipeIngredients] = useState<
     (Partial<RecipeIngredient> & { ingredient?: Ingredient; _tempId?: string })[]
@@ -108,6 +109,7 @@ export default function RecipeBuilderPage() {
         setLaborTimeMins(String(recipe.labor_time_mins ?? 0));
         setLaborRatePerHour(String(recipe.labor_rate_per_hour ?? 0));
         setElectricityCost(String(recipe.electricity_cost ?? 0));
+        setPackagingIngredientId(recipe.packaging_ingredient_id ?? '');
       }
       
       const { data: ris } = await supabase
@@ -159,7 +161,9 @@ export default function RecipeBuilderPage() {
 
   const baseLaborCost = calculateLaborCost(Number(laborTimeMins) || 0, Number(laborRatePerHour) || 0);
   const baseElectricityCost = Number(electricityCost) || 0;
-  const baseCost = baseIngredientCost + baseLaborCost + baseElectricityCost;
+  const pkgIng = allIngredients.find(i => i.id === packagingIngredientId);
+  const basePackagingCost = pkgIng ? (pkgIng.cost_per_unit * (Number(baseBatchSize) || 0)) : 0;
+  const baseCost = baseIngredientCost + baseLaborCost + baseElectricityCost + basePackagingCost;
 
   async function handleSave() {
     if (!recipeName.trim()) { addToast('Recipe name required', 'error'); return; }
@@ -177,6 +181,7 @@ export default function RecipeBuilderPage() {
       labor_time_mins: Number(laborTimeMins) || 0,
       labor_rate_per_hour: Number(laborRatePerHour) || 0,
       electricity_cost: Number(electricityCost) || 0,
+      packaging_ingredient_id: packagingIngredientId || null,
     };
 
     if (isNew) {
@@ -356,6 +361,32 @@ export default function RecipeBuilderPage() {
                 Estimated electricity cost to bake one base batch (e.g. oven usage, mixer).
               </span>
             </div>
+
+            <div className="divider" style={{ margin: '4px 0' }} />
+
+            <div className="input-group">
+              <label className="input-label">📦 Recipe Packaging Material</label>
+              <select
+                className="input"
+                value={packagingIngredientId}
+                onChange={(e) => setPackagingIngredientId(e.target.value)}
+              >
+                <option value="">No packaging material selected</option>
+                {allIngredients.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name} ({formatZAR(i.cost_per_unit)}/{i.unit} · {i.current_stock} in stock)
+                  </option>
+                ))}
+              </select>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                Select a single packaging material (like a box or bag) used per baked unit. The cost scales with batch size and deducts from inventory.
+              </span>
+              {pkgIng && (
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 8 }}>
+                  Base packaging cost: <strong>{formatZAR(basePackagingCost)}</strong> ({formatZAR(pkgIng.cost_per_unit)} × {baseBatchSize} units)
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -480,6 +511,12 @@ export default function RecipeBuilderPage() {
                 <div className="flex-between" style={{ fontSize: 14 }}>
                   <span className="text-secondary">Electricity Cost:</span>
                   <span className="font-semibold">{formatZAR(baseElectricityCost)}</span>
+                </div>
+              )}
+              {basePackagingCost > 0 && (
+                <div className="flex-between" style={{ fontSize: 14 }}>
+                  <span className="text-secondary">Packaging Cost:</span>
+                  <span className="font-semibold">{formatZAR(basePackagingCost)}</span>
                 </div>
               )}
               <div className="divider" />
