@@ -31,6 +31,7 @@ export default function RecipeBuilderPage() {
   const [laborTimeMins, setLaborTimeMins] = useState('0');
   const [laborRatePerHour, setLaborRatePerHour] = useState('0');
   const [electricityCost, setElectricityCost] = useState('0');
+  const [utilityCost, setUtilityCost] = useState('0');
   const [packagingIngredientId, setPackagingIngredientId] = useState<string>('');
   
   const [recipeIngredients, setRecipeIngredients] = useState<
@@ -109,6 +110,7 @@ export default function RecipeBuilderPage() {
         setLaborTimeMins(String(recipe.labor_time_mins ?? 0));
         setLaborRatePerHour(String(recipe.labor_rate_per_hour ?? 0));
         setElectricityCost(String(recipe.electricity_cost ?? 0));
+        setUtilityCost(String(recipe.utility_cost ?? 0));
         setPackagingIngredientId(recipe.packaging_ingredient_id ?? '');
       }
       
@@ -161,9 +163,10 @@ export default function RecipeBuilderPage() {
 
   const baseLaborCost = calculateLaborCost(Number(laborTimeMins) || 0, Number(laborRatePerHour) || 0);
   const baseElectricityCost = Number(electricityCost) || 0;
+  const baseUtilityCost = Number(utilityCost) || 0;
   const pkgIng = allIngredients.find(i => i.id === packagingIngredientId);
   const basePackagingCost = pkgIng ? (pkgIng.cost_per_unit * (Number(baseBatchSize) || 0)) : 0;
-  const baseCost = baseIngredientCost + baseLaborCost + baseElectricityCost + basePackagingCost;
+  const baseCost = baseIngredientCost + baseLaborCost + baseElectricityCost + basePackagingCost + baseUtilityCost;
 
   async function handleSave() {
     if (!recipeName.trim()) { addToast('Recipe name required', 'error'); return; }
@@ -181,6 +184,7 @@ export default function RecipeBuilderPage() {
       labor_time_mins: Number(laborTimeMins) || 0,
       labor_rate_per_hour: Number(laborRatePerHour) || 0,
       electricity_cost: Number(electricityCost) || 0,
+      utility_cost: Number(utilityCost) || 0,
       packaging_ingredient_id: packagingIngredientId || null,
     };
 
@@ -365,6 +369,24 @@ export default function RecipeBuilderPage() {
             <div className="divider" style={{ margin: '4px 0' }} />
 
             <div className="input-group">
+              <label className="input-label">💧 Utility Cost per Batch (R)</label>
+              <input
+                className="input"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={utilityCost}
+                onChange={(e) => setUtilityCost(e.target.value)}
+              />
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                Other direct batch utilities (e.g. water, washing, cooking gas, cleaning supplies).
+              </span>
+            </div>
+
+            <div className="divider" style={{ margin: '4px 0' }} />
+
+            <div className="input-group">
               <label className="input-label">📦 Recipe Packaging Material</label>
               <select
                 className="input"
@@ -517,6 +539,12 @@ export default function RecipeBuilderPage() {
                 <div className="flex-between" style={{ fontSize: 14 }}>
                   <span className="text-secondary">Packaging Cost:</span>
                   <span className="font-semibold">{formatZAR(basePackagingCost)}</span>
+                </div>
+              )}
+              {baseUtilityCost > 0 && (
+                <div className="flex-between" style={{ fontSize: 14 }}>
+                  <span className="text-secondary">Utility Cost:</span>
+                  <span className="font-semibold">{formatZAR(baseUtilityCost)}</span>
                 </div>
               )}
               <div className="divider" />

@@ -119,9 +119,18 @@ export default function ScaleDetailPage() {
     return packagingIngredient.cost_per_unit * batchSize;
   }, [packagingIngredient, batchSize]);
 
+  const baseUtilityCost = useMemo(() => {
+    if (!recipe) return 0;
+    return recipe.utility_cost ?? 0;
+  }, [recipe]);
+
+  const scaledUtilityCost = useMemo(() => {
+    return baseUtilityCost * scaleFactor;
+  }, [baseUtilityCost, scaleFactor]);
+
   const totalCost = useMemo(() => {
-    return ingredientCost + scaledLaborCost + scaledElectricityCost + scaledPackagingCost;
-  }, [ingredientCost, scaledLaborCost, scaledElectricityCost, scaledPackagingCost]);
+    return ingredientCost + scaledLaborCost + scaledElectricityCost + scaledPackagingCost + scaledUtilityCost;
+  }, [ingredientCost, scaledLaborCost, scaledElectricityCost, scaledPackagingCost, scaledUtilityCost]);
 
   const costPerUnit = useMemo(() => {
     return batchSize > 0 ? totalCost / batchSize : 0;
@@ -360,6 +369,14 @@ export default function ScaleDetailPage() {
                   <span style={{ fontSize: 14 }}>📦</span> Packaging Cost
                 </span>
                 <span className="font-semibold">{formatZAR(scaledPackagingCost)}</span>
+              </div>
+            )}
+            {scaledUtilityCost > 0 && (
+              <div className="flex-between">
+                <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 14 }}>💧</span> Utility Cost
+                </span>
+                <span className="font-semibold">{formatZAR(scaledUtilityCost)}</span>
               </div>
             )}
             <div className="divider" />
