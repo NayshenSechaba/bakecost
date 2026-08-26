@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Ingredient, RecipeIngredient } from '@/types';
-import { formatZAR, unitLabel, calculateLaborCost } from '@/lib/utils';
+import { formatZAR, unitLabel, calculateLaborCost, suggestedPrice } from '@/lib/utils';
 import {
   ArrowLeft,
   Plus,

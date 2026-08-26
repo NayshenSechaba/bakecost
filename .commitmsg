@@ -1,1 +1,1 @@
-feat: render margin warning alert indicators in recipe listing page
+fix: import suggestedPrice utility helper inside recipe details page
