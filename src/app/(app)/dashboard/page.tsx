@@ -23,34 +23,67 @@ export default function DashboardPage() {
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [lowStock, setLowStock] = useState<Ingredient[]>([]);
+  const [allIngredients, setAllIngredients] = useState<Ingredient[]>([]);
+  const [underMarginRecipes, setUnderMarginRecipes] = useState<any[]>([]);
   const [recentLogs, setRecentLogs] = useState<(ProductionLog & { recipe: Recipe | null })[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const [recipesRes, logsRes] = await Promise.all([
+      const [recipesRes, logsRes, allIngredientsRes] = await Promise.all([
         supabase
           .from('recipes')
-          .select('*')
+          .select('*, recipe_ingredients(*)')
           .order('created_at', { ascending: false }),
         supabase
           .from('production_log')
           .select('*, recipe:recipes(name)')
           .order('date', { ascending: false })
           .limit(3),
+        supabase
+          .from('ingredients')
+          .select('*'),
       ]);
 
-      setRecipes(recipesRes.data ?? []);
+      const recipeData = recipesRes.data ?? [];
+      const ingredientData = allIngredientsRes.data ?? [];
+
+      setRecipes(recipeData);
+      setAllIngredients(ingredientData);
       
-      const allIngredients = await supabase
-        .from('ingredients')
-        .select('*');
-        
-      const low = (allIngredients.data ?? []).filter(
+      const low = ingredientData.filter(
         (i: Ingredient) => i.current_stock <= i.low_stock_threshold
       );
       setLowStock(low);
       setRecentLogs((logsRes.data as any) ?? []);
+
+      // Calculate under margin recipes
+      const under = recipeData.filter((recipe: any) => {
+        const baseIngredientCost = (recipe.recipe_ingredients ?? []).reduce((sum: number, ri: any) => {
+          const ing = ingredientData.find((i: Ingredient) => i.id === ri.ingredient_id);
+          const cpu = ing?.cost_per_unit ?? 0;
+          return sum + (ri.quantity_at_base ?? 0) * cpu;
+        }, 0);
+
+        const laborRate = recipe.labor_rate_per_hour ?? 0;
+        const laborMins = recipe.labor_time_mins ?? 0;
+        const baseLaborCost = (laborMins / 60) * laborRate;
+        const baseElecCost = recipe.electricity_cost ?? 0;
+        const baseUtilityCost = recipe.utility_cost ?? 0;
+        const pkgIng = ingredientData.find((i: Ingredient) => i.id === recipe.packaging_ingredient_id);
+        const basePackagingCost = pkgIng ? (pkgIng.cost_per_unit * (recipe.base_batch_size ?? 0)) : 0;
+
+        const totalCost = baseIngredientCost + baseLaborCost + baseElecCost + basePackagingCost + baseUtilityCost;
+        const sellingPrice = recipe.selling_price ?? 0;
+        const targetMargin = recipe.target_margin_pct ?? 60;
+
+        if (sellingPrice <= 0) return false;
+
+        const actualMargin = ((sellingPrice - totalCost) / sellingPrice) * 100;
+        return actualMargin < targetMargin;
+      });
+
+      setUnderMarginRecipes(under);
       setLoading(false);
     }
     load();
@@ -172,6 +205,57 @@ export default function DashboardPage() {
             {lowStock.length > 3 && (
               <Link href="/inventory" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none', marginTop: 8, display: 'block' }}>
                 +{lowStock.length - 3} more → View inventory
+              </Link>
+            )}
+          </div>
+        )}
+
+        {/* Profit Margin Warnings */}
+        {!loading && underMarginRecipes.length > 0 && (
+          <div className="card" style={{ borderColor: 'rgba(244,67,54,0.2)', background: 'rgba(244,67,54,0.04)', marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <AlertTriangle size={16} color="#e57373" />
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#e57373', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Profit Margin Warnings
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {underMarginRecipes.slice(0, 3).map((recipe) => {
+                const baseIngredientCost = (recipe.recipe_ingredients ?? []).reduce((sum: number, ri: any) => {
+                  const ing = allIngredients.find((i: Ingredient) => i.id === ri.ingredient_id);
+                  const cpu = ing?.cost_per_unit ?? 0;
+                  return sum + (ri.quantity_at_base ?? 0) * cpu;
+                }, 0);
+                const laborRate = recipe.labor_rate_per_hour ?? 0;
+                const laborMins = recipe.labor_time_mins ?? 0;
+                const baseLaborCost = (laborMins / 60) * laborRate;
+                const baseElecCost = recipe.electricity_cost ?? 0;
+                const baseUtilityCost = recipe.utility_cost ?? 0;
+                const pkgIng = allIngredients.find((i: Ingredient) => i.id === recipe.packaging_ingredient_id);
+                const basePackagingCost = pkgIng ? (pkgIng.cost_per_unit * (recipe.base_batch_size ?? 0)) : 0;
+                const totalCost = baseIngredientCost + baseLaborCost + baseElecCost + basePackagingCost + baseUtilityCost;
+                const actualMargin = ((recipe.selling_price - totalCost) / recipe.selling_price) * 100;
+
+                return (
+                  <div key={recipe.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                    <div>
+                      <Link href={`/recipes/${recipe.id}`} style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none' }}>
+                        {recipe.name}
+                      </Link>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                        Selling: {formatZAR(recipe.selling_price)} · Cost: {formatZAR(totalCost)}
+                      </div>
+                    </div>
+                    <span className="badge badge-danger" style={{ fontSize: 11, background: 'rgba(244, 67, 54, 0.15)', color: '#e57373' }}>
+                      {actualMargin.toFixed(0)}% margin
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            {underMarginRecipes.length > 3 && (
+              <Link href="/recipes" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none', marginTop: 10, display: 'block' }}>
+                +{underMarginRecipes.length - 3} more → View all recipes
               </Link>
             )}
           </div>

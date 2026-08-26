@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { Recipe } from '@/types';
+import { Recipe, Ingredient } from '@/types';
+import { formatZAR, calculateLaborCost, suggestedPrice } from '@/lib/utils';
 import {
   Plus,
   BookOpen,
@@ -17,22 +18,63 @@ import { useToast, ToastContainer } from '@/components/Toast';
 export default function RecipesPage() {
   const supabase = createClient();
   const { toasts, addToast } = useToast();
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [recipes, setRecipes] = useState<any[]>([]);
+  const [allIngredients, setAllIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
+ 
   const load = useCallback(async () => {
-    const { data } = await supabase
-      .from('recipes')
-      .select('*')
-      .order('created_at', { ascending: false });
-    setRecipes(data ?? []);
+    const [recipesRes, ingredientsRes] = await Promise.all([
+      supabase
+        .from('recipes')
+        .select('*, recipe_ingredients(*)')
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('ingredients')
+        .select('*')
+    ]);
+
+    setRecipes(recipesRes.data ?? []);
+    setAllIngredients(ingredientsRes.data ?? []);
     setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  const getRecipeMarginStatus = (recipe: any) => {
+    const baseIngredientCost = (recipe.recipe_ingredients ?? []).reduce((sum: number, ri: any) => {
+      const ing = allIngredients.find(i => i.id === ri.ingredient_id);
+      const cpu = ing?.cost_per_unit ?? 0;
+      return sum + (ri.quantity_at_base ?? 0) * cpu;
+    }, 0);
+
+    const laborRate = recipe.labor_rate_per_hour ?? 0;
+    const laborMins = recipe.labor_time_mins ?? 0;
+    const baseLaborCost = (laborMins / 60) * laborRate;
+
+    const baseElecCost = recipe.electricity_cost ?? 0;
+    const baseUtilityCost = recipe.utility_cost ?? 0;
+
+    const pkgIng = allIngredients.find(i => i.id === recipe.packaging_ingredient_id);
+    const basePackagingCost = pkgIng ? (pkgIng.cost_per_unit * (recipe.base_batch_size ?? 0)) : 0;
+
+    const totalCost = baseIngredientCost + baseLaborCost + baseElecCost + basePackagingCost + baseUtilityCost;
+    const sellingPrice = recipe.selling_price ?? 0;
+    const targetMargin = recipe.target_margin_pct ?? 60;
+
+    if (sellingPrice <= 0) {
+      return { status: 'no_price', margin: 0, targetMargin };
+    }
+
+    const actualMargin = ((sellingPrice - totalCost) / sellingPrice) * 100;
+    return {
+      status: actualMargin >= targetMargin ? 'profitable' : 'under_margin',
+      margin: actualMargin,
+      targetMargin
+    };
+  };
 
   async function handleDelete(id: string) {
     const { error } = await supabase.from('recipes').delete().eq('id', id);
@@ -70,19 +112,39 @@ export default function RecipesPage() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {recipes.map((recipe) => (
-              <div key={recipe.id} className="card" style={{ padding: '14px 16px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <div className="list-item-icon">
-                    <ChefHat size={18} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{recipe.name}</div>
-                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 3 }}>
-                      Base batch: {recipe.base_batch_size} units · {recipe.target_margin_pct}% margin
+            {recipes.map((recipe) => {
+              const marginInfo = getRecipeMarginStatus(recipe);
+              return (
+                <div key={recipe.id} className="card" style={{ padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <div className="list-item-icon">
+                      <ChefHat size={18} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{recipe.name}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 3 }}>
+                        Base batch: {recipe.base_batch_size} units · {recipe.target_margin_pct}% target
+                      </div>
+                      
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                        {marginInfo.status === 'under_margin' && (
+                          <span style={{ fontSize: 11, background: 'rgba(244, 67, 54, 0.08)', border: '1px solid rgba(244, 67, 54, 0.15)', color: '#e57373', padding: '2px 6px', borderRadius: 4, fontWeight: 600, display: 'inline-flex', alignItems: 'center' }}>
+                            ⚠️ Under margin: {marginInfo.margin.toFixed(0)}% (Target {marginInfo.targetMargin}%)
+                          </span>
+                        )}
+                        {marginInfo.status === 'profitable' && (
+                          <span style={{ fontSize: 11, background: 'rgba(76, 175, 80, 0.08)', border: '1px solid rgba(76, 175, 80, 0.15)', color: '#81c784', padding: '2px 6px', borderRadius: 4, fontWeight: 600, display: 'inline-flex', alignItems: 'center' }}>
+                            ✔ Profitable: {marginInfo.margin.toFixed(0)}%
+                          </span>
+                        )}
+                        {marginInfo.status === 'no_price' && (
+                          <span style={{ fontSize: 11, background: 'var(--bg-elevated)', border: '1px dashed var(--border-light)', color: 'var(--text-muted)', padding: '2px 6px', borderRadius: 4, fontWeight: 500, display: 'inline-flex', alignItems: 'center' }}>
+                            💡 No retail price set
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
 
                 <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                   <Link
@@ -108,7 +170,8 @@ export default function RecipesPage() {
                   </button>
                 </div>
               </div>
-            ))}
+            );
+          })}
           </div>
         )}
       </div>

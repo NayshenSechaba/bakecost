@@ -32,6 +32,7 @@ export default function RecipeBuilderPage() {
   const [laborRatePerHour, setLaborRatePerHour] = useState('0');
   const [electricityCost, setElectricityCost] = useState('0');
   const [utilityCost, setUtilityCost] = useState('0');
+  const [sellingPrice, setSellingPrice] = useState('0');
   const [packagingIngredientId, setPackagingIngredientId] = useState<string>('');
   
   const [recipeIngredients, setRecipeIngredients] = useState<
@@ -111,6 +112,7 @@ export default function RecipeBuilderPage() {
         setLaborRatePerHour(String(recipe.labor_rate_per_hour ?? 0));
         setElectricityCost(String(recipe.electricity_cost ?? 0));
         setUtilityCost(String(recipe.utility_cost ?? 0));
+        setSellingPrice(String(recipe.selling_price ?? 0));
         setPackagingIngredientId(recipe.packaging_ingredient_id ?? '');
       }
       
@@ -168,6 +170,12 @@ export default function RecipeBuilderPage() {
   const basePackagingCost = pkgIng ? (pkgIng.cost_per_unit * (Number(baseBatchSize) || 0)) : 0;
   const baseCost = baseIngredientCost + baseLaborCost + baseElectricityCost + basePackagingCost + baseUtilityCost;
 
+  const sellingPriceVal = parseFloat(sellingPrice) || 0;
+  const actualMarginPct = sellingPriceVal > 0 ? ((sellingPriceVal - baseCost) / sellingPriceVal) * 100 : 0;
+  const marginTarget = parseFloat(targetMargin) || 60;
+  const marginDiff = actualMarginPct - marginTarget;
+  const recommendedSellingPrice = suggestedPrice(baseCost, marginTarget);
+
   async function handleSave() {
     if (!recipeName.trim()) { addToast('Recipe name required', 'error'); return; }
     if (!baseBatchSize || Number(baseBatchSize) <= 0) { addToast('Enter a valid batch size', 'error'); return; }
@@ -185,6 +193,7 @@ export default function RecipeBuilderPage() {
       labor_rate_per_hour: Number(laborRatePerHour) || 0,
       electricity_cost: Number(electricityCost) || 0,
       utility_cost: Number(utilityCost) || 0,
+      selling_price: Number(sellingPrice) || 0,
       packaging_ingredient_id: packagingIngredientId || null,
     };
 
@@ -306,6 +315,22 @@ export default function RecipeBuilderPage() {
                   onChange={(e) => setTargetMargin(e.target.value)}
                 />
               </div>
+            </div>
+
+            <div className="input-group" style={{ marginTop: 12 }}>
+              <label className="input-label">Actual Batch Selling Price (R)</label>
+              <input
+                className="input"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={sellingPrice}
+                onChange={(e) => setSellingPrice(e.target.value)}
+              />
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                The total retail price you charge customers for this entire base batch of {baseBatchSize || '12'} units.
+              </span>
             </div>
 
             <div className="divider" style={{ margin: '4px 0' }} />
@@ -567,6 +592,45 @@ export default function RecipeBuilderPage() {
               </div>
               <ChefHat size={32} color="var(--accent)" style={{ opacity: 0.4 }} />
             </div>
+
+            {sellingPriceVal > 0 ? (
+              <div style={{
+                marginTop: 16,
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-sm)',
+                background: marginDiff >= 0 ? 'rgba(76, 175, 80, 0.08)' : 'rgba(244, 67, 54, 0.08)',
+                border: `1px solid ${marginDiff >= 0 ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 67, 54, 0.15)'}`,
+                color: marginDiff >= 0 ? '#81c784' : '#e57373',
+                fontSize: 13,
+                lineHeight: 1.4
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, marginBottom: 4 }}>
+                  {marginDiff >= 0 ? '🎉 Highly Profitable Batch' : '⚠️ Under Target Margin'}
+                </div>
+                <div style={{ color: 'var(--text-secondary)' }}>
+                  Your actual profit margin is <strong style={{ color: marginDiff >= 0 ? '#81c784' : '#e57373' }}>{actualMarginPct.toFixed(1)}%</strong> (Target is {marginTarget}%).
+                </div>
+                {marginDiff < 0 && (
+                  <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-primary)' }}>
+                    To hit your {marginTarget}% target margin, we recommend raising the selling price to{' '}
+                    <strong style={{ color: 'var(--accent)' }}>{formatZAR(recommendedSellingPrice)}</strong> (current price {formatZAR(sellingPriceVal)}).
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{
+                marginTop: 16,
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-sm)',
+                background: 'var(--bg-elevated)',
+                border: '1px dashed var(--border-light)',
+                color: 'var(--text-muted)',
+                fontSize: 12,
+                lineHeight: 1.4
+              }}>
+                💡 Enter your **Actual Batch Selling Price** above to validate your recipe profit margins and see live alerts.
+              </div>
+            )}
           </div>
         )}
 

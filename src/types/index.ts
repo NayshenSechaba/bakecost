@@ -34,6 +34,7 @@ export interface Recipe {
   labor_rate_per_hour: number;
   electricity_cost: number;
   utility_cost: number;
+  selling_price: number;
   packaging_ingredient_id?: string | null;
   created_at?: string;
 }
@@ -68,6 +69,7 @@ export interface RecipeCost {
   labor_rate_per_hour: number;
   electricity_cost: number;
   utility_cost: number;
+  selling_price: number;
   packaging_ingredient_id?: string | null;
   base_ingredient_cost: number;
   base_labor_cost: number;
