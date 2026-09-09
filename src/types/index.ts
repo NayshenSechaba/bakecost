@@ -76,3 +76,34 @@ export interface RecipeCost {
   base_total_cost: number;
   cost_per_unit: number;
 }
+
+export interface WastageLog {
+  id: string;
+  bakery_id?: string;
+  item_type: 'ingredient' | 'recipe' | 'other';
+  item_id?: string;
+  item_name: string;
+  quantity: number;
+  unit?: string;
+  cost_lost: number;
+  reason?: string;
+  date?: string;
+  created_at?: string;
+}
+
+export interface IngredientPriceHistory {
+  id: string;
+  ingredient_id: string;
+  old_price: number;
+  new_price: number;
+  date?: string;
+}
+
+export interface BakerySettings {
+  id: string;
+  bakery_id?: string;
+  monthly_overhead_target: number;
+  report_widgets_config: string[];
+  updated_at?: string;
+}
+
