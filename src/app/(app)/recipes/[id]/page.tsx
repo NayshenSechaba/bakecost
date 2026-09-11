@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
+import { useAuth } from '@/components/AuthProvider';
 import Link from 'next/link';
 
 export default function RecipeBuilderPage() {
@@ -24,6 +25,7 @@ export default function RecipeBuilderPage() {
   const isNew = params.id === 'new';
   const supabase = createClient();
   const { toasts, addToast } = useToast();
+  const { bakeryId } = useAuth();
 
   const [recipeName, setRecipeName] = useState('');
   const [baseBatchSize, setBaseBatchSize] = useState('12');
@@ -185,7 +187,7 @@ export default function RecipeBuilderPage() {
 
     let recipeId = isNew ? null : (params.id as string);
 
-    const recipePayload = {
+    const recipePayload: any = {
       name: recipeName.trim(),
       base_batch_size: Number(baseBatchSize),
       target_margin_pct: Number(targetMargin) || 60,
@@ -196,6 +198,9 @@ export default function RecipeBuilderPage() {
       selling_price: Number(sellingPrice) || 0,
       packaging_ingredient_id: packagingIngredientId || null,
     };
+    if (isNew && bakeryId) {
+      recipePayload.bakery_id = bakeryId;
+    }
 
     if (isNew) {
       const { data, error } = await supabase

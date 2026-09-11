@@ -1,12 +1,17 @@
+'use client';
+
 import BottomNav from '@/components/BottomNav';
+import { AuthProvider } from '@/components/AuthProvider';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="app-shell">
-      <div className="page-content">
-        {children}
+    <AuthProvider>
+      <div className="app-shell">
+        <div className="page-content">
+          {children}
+        </div>
+        <BottomNav />
       </div>
-      <BottomNav />
-    </div>
+    </AuthProvider>
   );
 }

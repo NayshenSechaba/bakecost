@@ -18,6 +18,8 @@ import {
   Search,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
+import { useAuth } from '@/components/AuthProvider';
+import UpgradePrompt from '@/components/UpgradePrompt';
 
 const UNITS: Unit[] = ['g', 'kg', 'ml', 'l', 'unit'];
 
@@ -91,6 +93,8 @@ const SCAN_PRESETS = [
 export default function IngredientsPage() {
   const supabase = createClient();
   const { toasts, addToast } = useToast();
+  const { bakeryId, planLimits } = useAuth();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -198,6 +202,10 @@ export default function IngredientsPage() {
   };
 
   function openAdd() {
+    if (planLimits && ingredients.length >= planLimits.maxIngredients) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setEditing(null);
     setForm(EMPTY_FORM);
     setPackPrice('');
@@ -234,13 +242,16 @@ export default function IngredientsPage() {
     if (!form.cost_per_unit || isNaN(Number(form.cost_per_unit))) { addToast('Enter a valid cost', 'error'); return; }
 
     setSaving(true);
-    const payload = {
+    const payload: any = {
       name: form.name.trim(),
       unit: form.unit,
       cost_per_unit: Number(form.cost_per_unit),
       current_stock: Number(form.current_stock) || 0,
       low_stock_threshold: Number(form.low_stock_threshold) || 0,
     };
+    if (bakeryId) {
+      payload.bakery_id = bakeryId;
+    }
 
     const { error } = editing
       ? await supabase.from('ingredients').update(payload).eq('id', editing.id)
@@ -681,6 +692,12 @@ export default function IngredientsPage() {
           </div>
         </div>
       )}
+
+      <UpgradePrompt
+        feature="Unlimited Ingredients"
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+      />
 
       {/* Scan animation styles injected */}
       <style jsx global>{`

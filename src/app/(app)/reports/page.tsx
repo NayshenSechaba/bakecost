@@ -12,6 +12,9 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import Link from 'next/link';
+import { useAuth } from '@/components/AuthProvider';
+import UpgradePrompt from '@/components/UpgradePrompt';
+import { AdBanner } from '@/components/AdBanner';
 
 type WidgetType = 'top-products' | 'break-even' | 'slow-stock' | 'inflation' | 'profitability' | 'wastage';
 
@@ -25,6 +28,8 @@ const WIDGET_CATALOG = [
 ] as const;
 
 export default function ReportsPage() {
+  const { planLimits } = useAuth();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showCatalog, setShowCatalog] = useState(false);
   const [settings, setSettings] = useState<BakerySettings | null>(null);
@@ -89,6 +94,22 @@ export default function ReportsPage() {
     saveWidgetConfig(newWidgets);
   };
 
+  const handleExportCSV = () => {
+    if (planLimits && !planLimits.canExport) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    exportCSV();
+  };
+
+  const handlePrintPDF = () => {
+    if (planLimits && !planLimits.canExport) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    window.print();
+  };
+
   const exportCSV = () => {
     // Basic CSV export for production logs as an example
     if (!production.length) return alert('No data to export');
@@ -139,10 +160,10 @@ export default function ReportsPage() {
         <header className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-amber-500">Analytics & Reports</h1>
           <div className="flex gap-2">
-            <button onClick={exportCSV} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition" title="Export CSV">
+            <button onClick={handleExportCSV} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition" title="Export CSV">
               <Download size={20} className="text-gray-300" />
             </button>
-            <button onClick={() => window.print()} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition" title="Print PDF">
+            <button onClick={handlePrintPDF} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition" title="Print PDF">
               <Printer size={20} className="text-gray-300" />
             </button>
           </div>
@@ -338,6 +359,17 @@ export default function ReportsPage() {
           </div>
         </div>
       )}
+
+      {/* Ad Banner for Free tier */}
+      <div className="mt-8">
+        <AdBanner />
+      </div>
+
+      <UpgradePrompt
+        feature="Exporting Reports (PDF & CSV)"
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+      />
 
       {/* Print Styles */}
       <style dangerouslySetInnerHTML={{__html: `

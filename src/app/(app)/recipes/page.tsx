@@ -15,9 +15,16 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
+import { useAuth } from '@/components/AuthProvider';
+import UpgradePrompt from '@/components/UpgradePrompt';
+import { useRouter } from 'next/navigation';
+
 export default function RecipesPage() {
+  const router = useRouter();
   const supabase = createClient();
   const { toasts, addToast } = useToast();
+  const { planLimits } = useAuth();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [recipes, setRecipes] = useState<any[]>([]);
   const [allIngredients, setAllIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,9 +113,19 @@ export default function RecipesPage() {
             <div className="empty-icon"><BookOpen size={32} /></div>
             <div className="empty-title">No recipes yet</div>
             <div className="empty-sub">Create your first recipe to start costing batches</div>
-            <Link href="/recipes/new" className="btn btn-primary" style={{ marginTop: 8 }}>
+            <button 
+              onClick={() => {
+                if (planLimits && recipes.length >= planLimits.maxRecipes) {
+                  setShowUpgradeModal(true);
+                } else {
+                  router.push('/recipes/new');
+                }
+              }} 
+              className="btn btn-primary" 
+              style={{ marginTop: 8 }}
+            >
               <Plus size={16} /> New Recipe
-            </Link>
+            </button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -177,10 +194,26 @@ export default function RecipesPage() {
       </div>
 
       {!loading && recipes.length > 0 && (
-        <Link href="/recipes/new" className="fab" aria-label="New recipe">
+        <button 
+          onClick={() => {
+            if (planLimits && recipes.length >= planLimits.maxRecipes) {
+              setShowUpgradeModal(true);
+            } else {
+              router.push('/recipes/new');
+            }
+          }}
+          className="fab" 
+          aria-label="New recipe"
+        >
           <Plus size={24} />
-        </Link>
+        </button>
       )}
+
+      <UpgradePrompt
+        feature="Unlimited Recipes"
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+      />
 
       {deleteId && (
         <div className="modal-overlay" onClick={() => setDeleteId(null)}>

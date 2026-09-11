@@ -107,3 +107,24 @@ export interface BakerySettings {
   updated_at?: string;
 }
 
+export interface Subscription {
+  id: string;
+  bakery_id: string;
+  plan: 'free' | 'monthly' | 'annual';
+  status: 'active' | 'cancelled' | 'expired' | 'past_due';
+  paystack_customer_id?: string;
+  paystack_subscription_code?: string;
+  current_period_start?: string;
+  current_period_end?: string;
+  created_at?: string;
+}
+
+export interface BakeryInvite {
+  id: string;
+  bakery_id: string;
+  invited_email: string;
+  invited_by: string;
+  role: 'owner' | 'staff';
+  status: 'pending' | 'accepted' | 'revoked';
+  created_at?: string;
+}

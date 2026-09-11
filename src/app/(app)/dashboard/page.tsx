@@ -16,6 +16,7 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
+import { AdBanner } from '@/components/AdBanner';
 
 export default function DashboardPage() {
   const supabase = createClient();
@@ -115,6 +116,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="page-body">
+        <AdBanner />
 
         {/* Stat cards */}
         <div className="grid-2">

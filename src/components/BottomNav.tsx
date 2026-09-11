@@ -9,6 +9,7 @@ import {
   Scale,
   Package,
   BarChart3,
+  Settings,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -16,8 +17,8 @@ const NAV_ITEMS = [
   { href: '/ingredients', icon: ShoppingBasket, label: 'Ingredients' },
   { href: '/recipes', icon: BookOpen, label: 'Recipes' },
   { href: '/scale', icon: Scale, label: 'Scale' },
-  { href: '/inventory', icon: Package, label: 'Inventory' },
   { href: '/reports', icon: BarChart3, label: 'Reports' },
+  { href: '/settings', icon: Settings, label: 'Account' },
 ];
 
 export default function BottomNav() {

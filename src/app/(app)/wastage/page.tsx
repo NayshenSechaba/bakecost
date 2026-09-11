@@ -6,9 +6,11 @@ import { Ingredient, Recipe, WastageLog } from '@/types';
 import { AlertTriangle, Plus, Trash2, ArrowLeft, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
 
 export default function WastagePage() {
   const router = useRouter();
+  const { bakeryId } = useAuth();
   const [loading, setLoading] = useState(true);
   const [wastageLogs, setWastageLogs] = useState<WastageLog[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
@@ -87,6 +89,7 @@ export default function WastagePage() {
       }
 
       const { data, error } = await supabase.from('wastage_log').insert({
+        bakery_id: bakeryId || null,
         item_type: itemType,
         item_id: itemId,
         item_name: itemName,

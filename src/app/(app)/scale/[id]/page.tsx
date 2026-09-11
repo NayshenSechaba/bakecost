@@ -26,6 +26,7 @@ import {
   DollarSign,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
+import { useAuth } from '@/components/AuthProvider';
 type RI = RecipeIngredient & { ingredient: Ingredient };
 
 export default function ScaleDetailPage() {
@@ -33,6 +34,7 @@ export default function ScaleDetailPage() {
   const router = useRouter();
   const supabase = createClient();
   const { toasts, addToast } = useToast();
+  const { bakeryId } = useAuth();
 
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [ris, setRis] = useState<RI[]>([]);
@@ -155,6 +157,7 @@ export default function ScaleDetailPage() {
 
     // 1. Insert production log
     const { error: logErr } = await supabase.from('production_log').insert({
+      bakery_id: bakeryId || null,
       recipe_id: recipe.id,
       batch_size_made: batchSize,
       total_cost: totalCost,
