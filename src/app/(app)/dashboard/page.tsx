@@ -101,16 +101,26 @@ export default function DashboardPage() {
       <ToastContainer toasts={toasts} />
 
       {/* Header */}
-      <div style={{ padding: '28px 20px 20px', background: 'linear-gradient(180deg, #2a1f0e 0%, var(--bg-surface) 100%)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 12,
-            background: 'linear-gradient(135deg, var(--accent), var(--accent-dim))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20
-          }}>🥐</div>
-          <div>
-            <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>{today}</div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' }}>Doughnomics</h1>
+      <div style={{ padding: '24px 20px 20px', background: 'linear-gradient(180deg, #2a1f0e 0%, var(--bg-surface) 100%)', borderRadius: '0 0 var(--radius-lg) var(--radius-lg)' }} className="mb-2">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 12,
+              background: 'linear-gradient(135deg, var(--accent), var(--accent-dim))',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22
+            }}>🥐</div>
+            <div>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>{today}</div>
+              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' }}>Bakery Dashboard</h1>
+            </div>
+          </div>
+          <div className="hidden md:flex items-center gap-3">
+            <Link href="/scale" className="btn btn-secondary btn-sm">
+              <TrendingUp size={16} color="var(--accent)" /> Scale Recipe
+            </Link>
+            <Link href="/recipes/new" className="btn btn-primary btn-sm">
+              <Plus size={16} /> New Recipe
+            </Link>
           </div>
         </div>
       </div>

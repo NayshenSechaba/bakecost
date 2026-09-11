@@ -101,6 +101,18 @@ export default function RecipesPage() {
       <div className="page-header">
         <h1 className="page-title">Recipes</h1>
         <span className="badge badge-accent">{recipes.length}</span>
+        <button
+          onClick={() => {
+            if (planLimits && recipes.length >= planLimits.maxRecipes) {
+              setShowUpgradeModal(true);
+            } else {
+              router.push('/recipes/new');
+            }
+          }}
+          className="btn btn-primary btn-sm hidden md:inline-flex"
+        >
+          <Plus size={16} /> New Recipe
+        </button>
       </div>
 
       <div className="page-body">

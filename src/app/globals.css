@@ -51,20 +51,229 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* App shell */
-.app-shell {
+/* App Layout (Dual-Mode: Mobile App + Desktop Web) */
+.app-layout {
   width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
   min-height: 100dvh;
   position: relative;
   background: var(--bg-surface);
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .page-content {
-  padding: 0 0 110px 0; /* bottom nav space */
+  width: 100%;
+  padding: 0 0 110px 0; /* mobile bottom nav space */
   min-height: 100dvh;
+}
+
+/* Sidebar navigation (Desktop only) */
+.sidebar-nav {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    width: 260px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border-light);
+    z-index: 50;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  .sidebar-header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sidebar-logo {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 12px rgba(200, 121, 42, 0.25);
+  }
+
+  .sidebar-brand-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+
+  .sidebar-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .sidebar-quick-action {
+    padding: 16px 20px 8px;
+  }
+
+  .sidebar-menu {
+    flex: 1;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .sidebar-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 8px 10px 4px;
+  }
+
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+  }
+
+  .sidebar-link:hover {
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+  }
+
+  .sidebar-link.active {
+    color: var(--accent);
+    background: var(--accent-subtle);
+    font-weight: 600;
+    border-left: 3px solid var(--accent);
+  }
+
+  .sidebar-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+  }
+
+  .sidebar-plan-card {
+    margin: 12px 16px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    background: var(--bg-base);
+    border: 1px solid var(--border-light);
+  }
+
+  .sidebar-footer {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border-light);
+    background: var(--bg-card);
+  }
+
+  .sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sidebar-user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #1a1612;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .sidebar-user-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-user-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sidebar-user-role {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .sidebar-logout-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logout-btn:hover {
+    color: var(--danger);
+    background: var(--danger-bg);
+  }
+
+  .page-content {
+    max-width: 1200px;
+    padding: 0 32px 60px 32px;
+  }
+
+  .bottom-nav {
+    display: none !important;
+  }
+
+  .fab {
+    display: none !important;
+  }
 }
 
 /* Cards */

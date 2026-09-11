@@ -287,6 +287,12 @@ export default function IngredientsPage() {
       <div className="page-header">
         <h1 className="page-title">Ingredients</h1>
         <span className="badge badge-accent">{ingredients.length}</span>
+        <button
+          onClick={openAdd}
+          className="btn btn-primary btn-sm hidden md:inline-flex"
+        >
+          <Plus size={16} /> Add Ingredient
+        </button>
       </div>
 
       <div className="page-body">
