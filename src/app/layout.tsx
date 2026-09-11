@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'BakeCost — Bakery Costing App',
+  title: 'Doughnomics — Bakery Analytics & Costing',
   description: 'Scale recipes, track costs, and manage stock for your bakery. Built for South African bakers.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'BakeCost',
+    title: 'Doughnomics',
   },
 };
 

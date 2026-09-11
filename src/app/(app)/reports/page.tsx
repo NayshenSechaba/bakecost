@@ -104,7 +104,7 @@ export default function ReportsPage() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "bakecost_report.csv");
+    link.setAttribute("download", "doughnomics_report.csv");
     document.body.appendChild(link);
     link.click();
     link.remove();

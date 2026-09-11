@@ -109,7 +109,7 @@ export default function DashboardPage() {
           }}>🥐</div>
           <div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>{today}</div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' }}>BakeCost</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' }}>Doughnomics</h1>
           </div>
         </div>
       </div>
