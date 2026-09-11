@@ -136,196 +136,201 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick actions */}
-        <div className="card">
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 14 }}>
-            Quick Actions
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <Link href="/scale" style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              background: 'var(--accent-subtle)', border: '1px solid rgba(232,168,56,0.2)',
-              borderRadius: 'var(--radius-sm)', padding: '12px 14px', textDecoration: 'none',
-              transition: 'all 0.2s'
-            }}>
-              <TrendingUp size={20} color="var(--accent)" />
-              <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
-                Scale a Recipe
-              </span>
-              <ArrowRight size={16} color="var(--accent)" />
-            </Link>
-            <Link href="/recipes/new" style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              background: 'var(--bg-elevated)', border: '1px solid var(--border-light)',
-              borderRadius: 'var(--radius-sm)', padding: '12px 14px', textDecoration: 'none',
-              transition: 'all 0.2s'
-            }}>
-              <BookOpen size={20} color="var(--text-secondary)" />
-              <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
-                New Recipe
-              </span>
-              <ArrowRight size={16} color="var(--text-muted)" />
-            </Link>
-            <Link href="/ingredients" style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              background: 'var(--bg-elevated)', border: '1px solid var(--border-light)',
-              borderRadius: 'var(--radius-sm)', padding: '12px 14px', textDecoration: 'none',
-              transition: 'all 0.2s'
-            }}>
-              <Package size={20} color="var(--text-secondary)" />
-              <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
-                Add Ingredient
-              </span>
-              <ArrowRight size={16} color="var(--text-muted)" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Low stock alerts */}
-        {lowStock.length > 0 && (
-          <div className="card" style={{ borderColor: 'rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.04)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <AlertTriangle size={16} color="var(--warning)" />
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--warning)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Low Stock Alerts
-              </span>
-            </div>
-            {lowStock.slice(0, 3).map((ing) => (
-              <div key={ing.id} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '8px 0', borderBottom: '1px solid var(--border)'
-              }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{ing.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    {ing.current_stock} {ing.unit} left
-                  </div>
-                </div>
-                <span className="badge badge-warning">Low</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <div className="flex flex-col gap-4">
+            {/* Quick actions */}
+            <div className="card">
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 14 }}>
+                Quick Actions
               </div>
-            ))}
-            {lowStock.length > 3 && (
-              <Link href="/inventory" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none', marginTop: 8, display: 'block' }}>
-                +{lowStock.length - 3} more → View inventory
-              </Link>
-            )}
-          </div>
-        )}
-
-        {/* Profit Margin Warnings */}
-        {!loading && underMarginRecipes.length > 0 && (
-          <div className="card" style={{ borderColor: 'rgba(244,67,54,0.2)', background: 'rgba(244,67,54,0.04)', marginBottom: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <AlertTriangle size={16} color="#e57373" />
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#e57373', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Profit Margin Warnings
-              </span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {underMarginRecipes.slice(0, 3).map((recipe) => {
-                const baseIngredientCost = (recipe.recipe_ingredients ?? []).reduce((sum: number, ri: any) => {
-                  const ing = allIngredients.find((i: Ingredient) => i.id === ri.ingredient_id);
-                  const cpu = ing?.cost_per_unit ?? 0;
-                  return sum + (ri.quantity_at_base ?? 0) * cpu;
-                }, 0);
-                const laborRate = recipe.labor_rate_per_hour ?? 0;
-                const laborMins = recipe.labor_time_mins ?? 0;
-                const baseLaborCost = (laborMins / 60) * laborRate;
-                const baseElecCost = recipe.electricity_cost ?? 0;
-                const baseUtilityCost = recipe.utility_cost ?? 0;
-                const pkgIng = allIngredients.find((i: Ingredient) => i.id === recipe.packaging_ingredient_id);
-                const basePackagingCost = pkgIng ? (pkgIng.cost_per_unit * (recipe.base_batch_size ?? 0)) : 0;
-                const totalCost = baseIngredientCost + baseLaborCost + baseElecCost + basePackagingCost + baseUtilityCost;
-                const actualMargin = ((recipe.selling_price - totalCost) / recipe.selling_price) * 100;
-
-                return (
-                  <div key={recipe.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-                    <div>
-                      <Link href={`/recipes/${recipe.id}`} style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none' }}>
-                        {recipe.name}
-                      </Link>
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                        Selling: {formatZAR(recipe.selling_price)} · Cost: {formatZAR(totalCost)}
-                      </div>
-                    </div>
-                    <span className="badge badge-danger" style={{ fontSize: 11, background: 'rgba(244, 67, 54, 0.15)', color: '#e57373' }}>
-                      {actualMargin.toFixed(0)}% margin
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            {underMarginRecipes.length > 3 && (
-              <Link href="/recipes" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none', marginTop: 10, display: 'block' }}>
-                +{underMarginRecipes.length - 3} more → View all recipes
-              </Link>
-            )}
-          </div>
-        )}
-
-        {/* Recent bakes */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)' }}>Recent Bakes</span>
-            <Link href="/inventory" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>View all</Link>
-          </div>
-          {loading ? (
-            <div className="card" style={{ textAlign: 'center', padding: 32 }}>
-              <div className="spinner" style={{ margin: '0 auto', borderTopColor: 'var(--accent)' }} />
-            </div>
-          ) : recentLogs.length === 0 ? (
-            <div className="card empty-state" style={{ padding: '32px 16px' }}>
-              <div className="empty-icon"><ClipboardList size={28} /></div>
-              <div className="empty-title">No bakes logged yet</div>
-              <div className="empty-sub">Scale a recipe and log your first bake</div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {recentLogs.map((log) => (
-                <div key={log.id} className="card" style={{ padding: '12px 14px' }}>
-                  <div className="flex-between">
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>{(log as any).recipe?.name ?? 'Unknown'}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                        {log.batch_size_made} units · {new Date(log.date!).toLocaleDateString('en-ZA')}
-                      </div>
-                    </div>
-                    {log.total_cost != null && (
-                      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)' }}>
-                        {formatZAR(log.total_cost)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Recipes shortcut */}
-        {!loading && recipes.length > 0 && (
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)' }}>My Recipes</span>
-              <Link href="/recipes" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>See all</Link>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {recipes.slice(0, 3).map((recipe) => (
-                <Link key={recipe.id} href={`/scale/${recipe.id}`} className="list-item">
-                  <div className="list-item-icon">
-                    <ChefHat size={18} />
-                  </div>
-                  <div className="list-item-body">
-                    <div className="list-item-title">{recipe.name}</div>
-                    <div className="list-item-sub">Base: {recipe.base_batch_size} units · {recipe.target_margin_pct}% margin</div>
-                  </div>
-                  <TrendingUp size={16} color="var(--text-muted)" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <Link href="/scale" style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  background: 'var(--accent-subtle)', border: '1px solid rgba(232,168,56,0.2)',
+                  borderRadius: 'var(--radius-sm)', padding: '12px 14px', textDecoration: 'none',
+                  transition: 'all 0.2s'
+                }}>
+                  <TrendingUp size={20} color="var(--accent)" />
+                  <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    Scale a Recipe
+                  </span>
+                  <ArrowRight size={16} color="var(--accent)" />
                 </Link>
-              ))}
+                <Link href="/recipes/new" style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  background: 'var(--bg-elevated)', border: '1px solid var(--border-light)',
+                  borderRadius: 'var(--radius-sm)', padding: '12px 14px', textDecoration: 'none',
+                  transition: 'all 0.2s'
+                }}>
+                  <BookOpen size={20} color="var(--text-secondary)" />
+                  <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    New Recipe
+                  </span>
+                  <ArrowRight size={16} color="var(--text-muted)" />
+                </Link>
+                <Link href="/ingredients" style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  background: 'var(--bg-elevated)', border: '1px solid var(--border-light)',
+                  borderRadius: 'var(--radius-sm)', padding: '12px 14px', textDecoration: 'none',
+                  transition: 'all 0.2s'
+                }}>
+                  <Package size={20} color="var(--text-secondary)" />
+                  <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    Add Ingredient
+                  </span>
+                  <ArrowRight size={16} color="var(--text-muted)" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Recipes shortcut */}
+            {!loading && recipes.length > 0 && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)' }}>My Recipes</span>
+                  <Link href="/recipes" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>See all</Link>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {recipes.slice(0, 3).map((recipe) => (
+                    <Link key={recipe.id} href={`/scale/${recipe.id}`} className="list-item">
+                      <div className="list-item-icon">
+                        <ChefHat size={18} />
+                      </div>
+                      <div className="list-item-body">
+                        <div className="list-item-title">{recipe.name}</div>
+                        <div className="list-item-sub">Base: {recipe.base_batch_size} units · {recipe.target_margin_pct}% margin</div>
+                      </div>
+                      <TrendingUp size={16} color="var(--text-muted)" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-4">
+            {/* Low stock alerts */}
+            {lowStock.length > 0 && (
+              <div className="card" style={{ borderColor: 'rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.04)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <AlertTriangle size={16} color="var(--warning)" />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--warning)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Low Stock Alerts
+                  </span>
+                </div>
+                {lowStock.slice(0, 3).map((ing) => (
+                  <div key={ing.id} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '8px 0', borderBottom: '1px solid var(--border)'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{ing.name}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                        {ing.current_stock} {ing.unit} left
+                      </div>
+                    </div>
+                    <span className="badge badge-warning">Low</span>
+                  </div>
+                ))}
+                {lowStock.length > 3 && (
+                  <Link href="/inventory" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none', marginTop: 8, display: 'block' }}>
+                    +{lowStock.length - 3} more → View inventory
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {/* Profit Margin Warnings */}
+            {!loading && underMarginRecipes.length > 0 && (
+              <div className="card" style={{ borderColor: 'rgba(244,67,54,0.2)', background: 'rgba(244,67,54,0.04)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <AlertTriangle size={16} color="#e57373" />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#e57373', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Profit Margin Warnings
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {underMarginRecipes.slice(0, 3).map((recipe) => {
+                    const baseIngredientCost = (recipe.recipe_ingredients ?? []).reduce((sum: number, ri: any) => {
+                      const ing = allIngredients.find((i: Ingredient) => i.id === ri.ingredient_id);
+                      const cpu = ing?.cost_per_unit ?? 0;
+                      return sum + (ri.quantity_at_base ?? 0) * cpu;
+                    }, 0);
+                    const laborRate = recipe.labor_rate_per_hour ?? 0;
+                    const laborMins = recipe.labor_time_mins ?? 0;
+                    const baseLaborCost = (laborMins / 60) * laborRate;
+                    const baseElecCost = recipe.electricity_cost ?? 0;
+                    const baseUtilityCost = recipe.utility_cost ?? 0;
+                    const pkgIng = allIngredients.find((i: Ingredient) => i.id === recipe.packaging_ingredient_id);
+                    const basePackagingCost = pkgIng ? (pkgIng.cost_per_unit * (recipe.base_batch_size ?? 0)) : 0;
+                    const totalCost = baseIngredientCost + baseLaborCost + baseElecCost + basePackagingCost + baseUtilityCost;
+                    const actualMargin = ((recipe.selling_price - totalCost) / recipe.selling_price) * 100;
+
+                    return (
+                      <div key={recipe.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                        <div>
+                          <Link href={`/recipes/${recipe.id}`} style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none' }}>
+                            {recipe.name}
+                          </Link>
+                          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                            Selling: {formatZAR(recipe.selling_price)} · Cost: {formatZAR(totalCost)}
+                          </div>
+                        </div>
+                        <span className="badge badge-danger" style={{ fontSize: 11, background: 'rgba(244, 67, 54, 0.15)', color: '#e57373' }}>
+                          {actualMargin.toFixed(0)}% margin
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {underMarginRecipes.length > 3 && (
+                  <Link href="/recipes" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none', marginTop: 10, display: 'block' }}>
+                    +{underMarginRecipes.length - 3} more → View all recipes
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {/* Recent bakes */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)' }}>Recent Bakes</span>
+                <Link href="/inventory" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>View all</Link>
+              </div>
+              {loading ? (
+                <div className="card" style={{ textAlign: 'center', padding: 32 }}>
+                  <div className="spinner" style={{ margin: '0 auto', borderTopColor: 'var(--accent)' }} />
+                </div>
+              ) : recentLogs.length === 0 ? (
+                <div className="card empty-state" style={{ padding: '32px 16px' }}>
+                  <div className="empty-icon"><ClipboardList size={28} /></div>
+                  <div className="empty-title">No bakes logged yet</div>
+                  <div className="empty-sub">Scale a recipe and log your first bake</div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {recentLogs.map((log) => (
+                    <div key={log.id} className="card" style={{ padding: '12px 14px' }}>
+                      <div className="flex-between">
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 600 }}>{(log as any).recipe?.name ?? 'Unknown'}</div>
+                          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                            {log.batch_size_made} units · {new Date(log.date!).toLocaleDateString('en-ZA')}
+                          </div>
+                        </div>
+                        {log.total_cost != null && (
+                          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)' }}>
+                            {formatZAR(log.total_cost)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-        )}
-
+        </div>
       </div>
     </>
   );

@@ -235,190 +235,196 @@ export default function ScaleDetailPage() {
       </div>
 
       <div className="page-body">
-
-        {/* Batch size control */}
-        <div className="card">
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
-            Batch Size
-          </div>
-
-          {/* Stepper */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-            <button
-              className="btn btn-secondary"
-              style={{ width: 44, height: 44, padding: 0, borderRadius: '50%', flexShrink: 0 }}
-              onClick={() => adjustBatch(-1)}
-            >
-              <Minus size={18} />
-            </button>
-            <div style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{ fontSize: 42, fontWeight: 800, color: 'var(--accent)', lineHeight: 1 }}>
-                {batchSize}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+          {/* Left Column: Batch Size Controls & Ingredients */}
+          <div className="md:col-span-7 flex flex-col gap-4">
+            {/* Batch size control */}
+            <div className="card">
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
+                Batch Size
               </div>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
-                units  ·  {scaleFactor.toFixed(2)}× base
-              </div>
-            </div>
-            <button
-              className="btn btn-secondary"
-              style={{ width: 44, height: 44, padding: 0, borderRadius: '50%', flexShrink: 0 }}
-              onClick={() => adjustBatch(1)}
-            >
-              <Plus size={18} />
-            </button>
-          </div>
 
-          {/* Slider */}
-          <div className="slider-wrap">
-            <input
-              type="range"
-              min={1}
-              max={sliderMax}
-              step={1}
-              value={batchSize}
-              onChange={(e) => setBatchSize(Number(e.target.value))}
-              style={{
-                background: `linear-gradient(to right, var(--accent) ${(batchSize / sliderMax) * 100}%, var(--border) ${(batchSize / sliderMax) * 100}%)`
-              }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)' }}>
-              <span>1</span>
-              <span>Base: {recipe.base_batch_size}</span>
-              <span>{sliderMax}</span>
-            </div>
-          </div>
-
-          {/* Quick presets */}
-          <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
-            {[1, 2, 3, 5].map((mult) => {
-              const val = Math.round(recipe.base_batch_size * mult);
-              return (
+              {/* Stepper */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
                 <button
-                  key={mult}
-                  className={`btn btn-sm ${batchSize === val ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setBatchSize(val)}
+                  className="btn btn-secondary"
+                  style={{ width: 44, height: 44, padding: 0, borderRadius: '50%', flexShrink: 0 }}
+                  onClick={() => adjustBatch(-1)}
                 >
-                  {mult}×
+                  <Minus size={18} />
                 </button>
-              );
-            })}
-            <input
-              type="number"
-              className="input"
-              min="1"
-              placeholder="Custom"
-              style={{ width: 90, padding: '8px 10px', fontSize: 13 }}
-              onChange={(e) => {
-                const v = parseInt(e.target.value);
-                if (!isNaN(v) && v > 0) setBatchSize(v);
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Ingredient breakdown */}
-        {ris.length > 0 && (
-          <div className="card">
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
-              Ingredients (scaled)
-            </div>
-            {ris.map((ri) => {
-              const scaledQ = scaleQty(ri.quantity_at_base, recipe.base_batch_size, batchSize);
-              const cost = scaledQ * ri.ingredient.cost_per_unit;
-              return (
-                <div key={ri.id} className="cost-row">
-                  <div style={{ flex: 1 }}>
-                    <div className="cost-row-name">{ri.ingredient.name}</div>
-                    <div className="cost-row-qty">
-                      {scaledQ % 1 === 0 ? scaledQ : scaledQ.toFixed(2)} {unitLabel(ri.ingredient.unit)}
-                    </div>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: 42, fontWeight: 800, color: 'var(--accent)', lineHeight: 1 }}>
+                    {batchSize}
                   </div>
-                  <div className="cost-row-cost">{formatZAR(cost)}</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
+                    units  ·  {scaleFactor.toFixed(2)}× base
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+                <button
+                  className="btn btn-secondary"
+                  style={{ width: 44, height: 44, padding: 0, borderRadius: '50%', flexShrink: 0 }}
+                  onClick={() => adjustBatch(1)}
+                >
+                  <Plus size={18} />
+                </button>
+              </div>
 
-        {/* Cost & Labor Breakdown Details */}
-        <div className="card">
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-            Cost Breakdown
+              {/* Slider */}
+              <div className="slider-wrap">
+                <input
+                  type="range"
+                  min={1}
+                  max={sliderMax}
+                  step={1}
+                  value={batchSize}
+                  onChange={(e) => setBatchSize(Number(e.target.value))}
+                  style={{
+                    background: `linear-gradient(to right, var(--accent) ${(batchSize / sliderMax) * 100}%, var(--border) ${(batchSize / sliderMax) * 100}%)`
+                  }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)' }}>
+                  <span>1</span>
+                  <span>Base: {recipe.base_batch_size}</span>
+                  <span>{sliderMax}</span>
+                </div>
+              </div>
+
+              {/* Quick presets */}
+              <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+                {[1, 2, 3, 5].map((mult) => {
+                  const val = Math.round(recipe.base_batch_size * mult);
+                  return (
+                    <button
+                      key={mult}
+                      className={`btn btn-sm ${batchSize === val ? 'btn-primary' : 'btn-secondary'}`}
+                      onClick={() => setBatchSize(val)}
+                    >
+                      {mult}×
+                    </button>
+                  );
+                })}
+                <input
+                  type="number"
+                  className="input"
+                  min="1"
+                  placeholder="Custom"
+                  style={{ width: 90, padding: '8px 10px', fontSize: 13 }}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value);
+                    if (!isNaN(v) && v > 0) setBatchSize(v);
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Ingredient breakdown */}
+            {ris.length > 0 && (
+              <div className="card">
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+                  Ingredients (scaled)
+                </div>
+                {ris.map((ri) => {
+                  const scaledQ = scaleQty(ri.quantity_at_base, recipe.base_batch_size, batchSize);
+                  const cost = scaledQ * ri.ingredient.cost_per_unit;
+                  return (
+                    <div key={ri.id} className="cost-row">
+                      <div style={{ flex: 1 }}>
+                        <div className="cost-row-name">{ri.ingredient.name}</div>
+                        <div className="cost-row-qty">
+                          {scaledQ % 1 === 0 ? scaledQ : scaledQ.toFixed(2)} {unitLabel(ri.ingredient.unit)}
+                        </div>
+                      </div>
+                      <div className="cost-row-cost">{formatZAR(cost)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div className="flex-between">
-              <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <ChefHat size={16} /> Ingredients Cost
-              </span>
-              <span className="font-semibold">{formatZAR(ingredientCost)}</span>
-            </div>
-            <div className="flex-between">
-              <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Clock size={16} /> Labor Cost ({Math.round(scaledLaborTimeMins)} mins)
-              </span>
-              <span className="font-semibold">{formatZAR(scaledLaborCost)}</span>
-            </div>
-            {scaledElectricityCost > 0 && (
-              <div className="flex-between">
-                <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 14 }}>⚡</span> Electricity Cost
-                </span>
-                <span className="font-semibold">{formatZAR(scaledElectricityCost)}</span>
+
+          {/* Right Column: Sticky Summary & Actions */}
+          <div className="md:col-span-5 flex flex-col gap-4 md:sticky md:top-20">
+            {/* Price summary */}
+            <div className="price-cards">
+              <div className="price-card featured">
+                <div className="price-card-label">Suggested Selling Price</div>
+                <div className="price-card-value">{formatZAR(price * batchSize)}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                  {formatZAR(price)} per unit · {recipe.target_margin_pct}% margin
+                </div>
               </div>
-            )}
-            {scaledPackagingCost > 0 && (
-              <div className="flex-between">
-                <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 14 }}>📦</span> Packaging Cost
-                </span>
-                <span className="font-semibold">{formatZAR(scaledPackagingCost)}</span>
+              <div className="price-card">
+                <div className="price-card-label">Total Cost</div>
+                <div className="price-card-value" style={{ fontSize: 20 }}>{formatZAR(totalCost)}</div>
               </div>
-            )}
-            {scaledUtilityCost > 0 && (
-              <div className="flex-between">
-                <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 14 }}>💧</span> Utility Cost
-                </span>
-                <span className="font-semibold">{formatZAR(scaledUtilityCost)}</span>
+              <div className="price-card">
+                <div className="price-card-label">Cost / Unit</div>
+                <div className="price-card-value" style={{ fontSize: 20 }}>{formatZAR(costPerUnit)}</div>
               </div>
-            )}
-            <div className="divider" />
-            <div className="flex-between">
-              <span className="font-bold" style={{ color: 'var(--text-primary)' }}>Grand Total Cost</span>
-              <span className="font-bold text-accent" style={{ fontSize: 16 }}>{formatZAR(totalCost)}</span>
             </div>
+
+            {/* Cost & Labor Breakdown Details */}
+            <div className="card">
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                Cost Breakdown
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div className="flex-between">
+                  <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <ChefHat size={16} /> Ingredients Cost
+                  </span>
+                  <span className="font-semibold">{formatZAR(ingredientCost)}</span>
+                </div>
+                <div className="flex-between">
+                  <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Clock size={16} /> Labor Cost ({Math.round(scaledLaborTimeMins)} mins)
+                  </span>
+                  <span className="font-semibold">{formatZAR(scaledLaborCost)}</span>
+                </div>
+                {scaledElectricityCost > 0 && (
+                  <div className="flex-between">
+                    <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 14 }}>⚡</span> Electricity Cost
+                    </span>
+                    <span className="font-semibold">{formatZAR(scaledElectricityCost)}</span>
+                  </div>
+                )}
+                {scaledPackagingCost > 0 && (
+                  <div className="flex-between">
+                    <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 14 }}>📦</span> Packaging Cost
+                    </span>
+                    <span className="font-semibold">{formatZAR(scaledPackagingCost)}</span>
+                  </div>
+                )}
+                {scaledUtilityCost > 0 && (
+                  <div className="flex-between">
+                    <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 14 }}>💧</span> Utility Cost
+                    </span>
+                    <span className="font-semibold">{formatZAR(scaledUtilityCost)}</span>
+                  </div>
+                )}
+                <div className="divider" />
+                <div className="flex-between">
+                  <span className="font-bold" style={{ color: 'var(--text-primary)' }}>Grand Total Cost</span>
+                  <span className="font-bold text-accent" style={{ fontSize: 16 }}>{formatZAR(totalCost)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Log this bake */}
+            <button
+              className="btn btn-primary btn-full btn-lg"
+              onClick={() => setShowLogModal(true)}
+              style={{ marginTop: 4 }}
+            >
+              <ClipboardCheck size={20} />
+              Log This Bake
+            </button>
           </div>
         </div>
-
-        {/* Price summary */}
-        <div className="price-cards">
-          <div className="price-card featured">
-            <div className="price-card-label">Suggested Selling Price</div>
-            <div className="price-card-value">{formatZAR(price * batchSize)}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
-              {formatZAR(price)} per unit · {recipe.target_margin_pct}% margin
-            </div>
-          </div>
-          <div className="price-card">
-            <div className="price-card-label">Total Cost</div>
-            <div className="price-card-value" style={{ fontSize: 20 }}>{formatZAR(totalCost)}</div>
-          </div>
-          <div className="price-card">
-            <div className="price-card-label">Cost / Unit</div>
-            <div className="price-card-value" style={{ fontSize: 20 }}>{formatZAR(costPerUnit)}</div>
-          </div>
-        </div>
-
-        {/* Log this bake */}
-        <button
-          className="btn btn-primary btn-full btn-lg"
-          onClick={() => setShowLogModal(true)}
-          style={{ marginTop: 4 }}
-        >
-          <ClipboardCheck size={20} />
-          Log This Bake
-        </button>
-
       </div>
 
       {/* Log modal */}

@@ -120,141 +120,163 @@ export default function WastagePage() {
     setWastageLogs(wastageLogs.filter(l => l.id !== id));
   };
 
-  if (loading) return <div className="p-6 text-center text-gray-500">Loading Wastage Data...</div>;
+  if (loading) {
+    return (
+      <div className="flex-center" style={{ paddingTop: 120 }}>
+        <div className="spinner" style={{ borderTopColor: 'var(--accent)', width: 36, height: 36, borderWidth: 3 }} />
+      </div>
+    );
+  }
 
   const totalLoss = wastageLogs.reduce((sum, log) => sum + Number(log.cost_lost), 0);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white pb-24">
-      <div className="p-6">
-        <header className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="text-gray-400 hover:text-white">
-              <ArrowLeft size={24} />
-            </button>
-            <h1 className="text-2xl font-bold text-red-500 flex items-center gap-2">
-              <AlertTriangle size={24} /> Wastage Tracker
-            </h1>
-          </div>
-          <button 
-            onClick={() => setShowForm(!showForm)}
-            className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
-          >
-            {showForm ? <X size={16} /> : <Plus size={16} />}
-            {showForm ? 'Cancel' : 'Log Wastage'}
-          </button>
-        </header>
+    <>
+      <div className="page-header">
+        <button onClick={() => router.back()} className="btn btn-ghost btn-sm" style={{ padding: '6px 8px' }}>
+          <ArrowLeft size={18} />
+        </button>
+        <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--danger)' }}>
+          <AlertTriangle size={20} /> Wastage Tracker
+        </h1>
+        <button 
+          onClick={() => setShowForm(!showForm)}
+          className="btn btn-danger btn-sm"
+          style={{ flexShrink: 0 }}
+        >
+          {showForm ? <X size={15} /> : <Plus size={15} />}
+          {showForm ? 'Cancel' : 'Log Wastage'}
+        </button>
+      </div>
 
-        <div className="bg-gray-800 rounded-xl p-5 border border-red-500/30 mb-6 flex justify-between items-center shadow-lg shadow-red-900/10">
-          <div>
-            <p className="text-sm text-gray-400 mb-1">Total Value Lost (All Time)</p>
-            <p className="text-3xl font-bold text-red-500">R{totalLoss.toFixed(2)}</p>
+      <div className="page-body">
+        {/* Total lost metric */}
+        <div className="card" style={{ background: 'var(--danger-bg)', borderColor: 'rgba(239, 68, 68, 0.3)', padding: '16px 20px' }}>
+          <div className="stat-label" style={{ color: 'var(--danger)' }}>Total Value Lost (All Time)</div>
+          <div className="stat-value" style={{ color: 'var(--danger)', fontSize: 32, marginTop: 4 }}>
+            R{totalLoss.toFixed(2)}
           </div>
         </div>
 
-        {showForm && (
-          <form onSubmit={handleLogWastage} className="bg-gray-800 p-5 rounded-xl border border-gray-700 mb-6">
-            <h2 className="text-lg font-semibold mb-4">Log New Wastage</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Item Type</label>
-                <select 
-                  value={itemType} 
-                  onChange={(e) => { setItemType(e.target.value as any); setItemId(''); }}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white"
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+          {/* Form when active, or when shown on desktop */}
+          {showForm && (
+            <div className="md:col-span-6 card">
+              <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' }}>
+                Log New Wastage
+              </h2>
+              
+              <form onSubmit={handleLogWastage} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div className="input-group">
+                  <label className="input-label">Item Type</label>
+                  <select 
+                    value={itemType} 
+                    onChange={(e) => { setItemType(e.target.value as any); setItemId(''); }}
+                    className="input"
+                  >
+                    <option value="ingredient">Raw Ingredient</option>
+                    <option value="recipe">Finished Product (Recipe)</option>
+                  </select>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Select Item</label>
+                  <select 
+                    value={itemId} 
+                    onChange={(e) => setItemId(e.target.value)}
+                    className="input"
+                    required
+                  >
+                    <option value="">-- Choose --</option>
+                    {itemType === 'ingredient' 
+                      ? ingredients.map(i => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)
+                      : recipes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
+                    }
+                  </select>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Quantity Lost</label>
+                  <input 
+                    type="number" step="0.01" min="0.01"
+                    value={quantity} onChange={(e) => setQuantity(e.target.value)}
+                    className="input"
+                    placeholder="e.g. 2.5"
+                    required
+                  />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    Note: Logging ingredient wastage will automatically deduct it from your inventory.
+                  </span>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Reason (Optional)</label>
+                  <input 
+                    type="text"
+                    value={reason} onChange={(e) => setReason(e.target.value)}
+                    className="input"
+                    placeholder="e.g. Burnt in oven, Expired"
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={submitting}
+                  className="btn btn-danger btn-full btn-lg"
+                  style={{ marginTop: 4 }}
                 >
-                  <option value="ingredient">Raw Ingredient</option>
-                  <option value="recipe">Finished Product (Recipe)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Select Item</label>
-                <select 
-                  value={itemId} 
-                  onChange={(e) => setItemId(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white"
-                  required
-                >
-                  <option value="">-- Choose --</option>
-                  {itemType === 'ingredient' 
-                    ? ingredients.map(i => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)
-                    : recipes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
-                  }
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Quantity Lost</label>
-                <input 
-                  type="number" step="0.01" min="0.01"
-                  value={quantity} onChange={(e) => setQuantity(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white"
-                  placeholder="e.g. 2.5"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Note: Logging ingredient wastage will automatically deduct it from your inventory.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Reason (Optional)</label>
-                <input 
-                  type="text"
-                  value={reason} onChange={(e) => setReason(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white"
-                  placeholder="e.g. Burnt in oven, Expired"
-                />
-              </div>
-
-              <button 
-                type="submit" 
-                disabled={submitting}
-                className="w-full bg-red-600 hover:bg-red-500 text-white font-semibold p-3 rounded-lg mt-2"
-              >
-                {submitting ? 'Logging...' : 'Confirm Wastage Loss'}
-              </button>
+                  {submitting ? <div className="spinner" /> : <AlertTriangle size={18} />}
+                  {submitting ? 'Logging...' : 'Confirm Wastage Loss'}
+                </button>
+              </form>
             </div>
-          </form>
-        )}
+          )}
 
-        <h2 className="text-lg font-semibold mb-4 text-gray-300">Wastage History</h2>
-        
-        {wastageLogs.length === 0 ? (
-          <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-500 border border-gray-700">
-            No wastage logged yet. Great job minimizing waste!
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {wastageLogs.map(log => (
-              <div key={log.id} className="bg-gray-800 p-4 rounded-xl border border-gray-700 flex justify-between items-center">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-white">{log.item_name}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-700 text-gray-300">
-                      {log.item_type}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-400">
-                    Lost {log.quantity} {log.unit} • {log.reason || 'No reason specified'}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {new Date(log.date!).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <span className="font-bold text-red-400">-R{Number(log.cost_lost).toFixed(2)}</span>
-                  <button onClick={() => handleDelete(log.id)} className="text-gray-500 hover:text-red-500">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+          {/* History list */}
+          <div className={showForm ? 'md:col-span-6 flex flex-col gap-3' : 'md:col-span-12 flex flex-col gap-3'}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Wastage History
+            </div>
+            
+            {wastageLogs.length === 0 ? (
+              <div className="card empty-state">
+                <div className="empty-icon"><AlertTriangle size={28} /></div>
+                <div className="empty-title">No wastage logged yet</div>
+                <div className="empty-sub">Great job minimizing bakery waste!</div>
               </div>
-            ))}
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {wastageLogs.map(log => (
+                  <div key={log.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{log.item_name}</span>
+                        <span className="badge badge-warning" style={{ fontSize: 10 }}>
+                          {log.item_type}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                        Lost {log.quantity} {log.unit} · {log.reason || 'No reason specified'}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                        {new Date(log.date!).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--danger)' }}>
+                        -R{Number(log.cost_lost).toFixed(2)}
+                      </span>
+                      <button onClick={() => handleDelete(log.id)} className="btn btn-ghost btn-sm" style={{ padding: '4px 6px', color: 'var(--text-muted)' }}>
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

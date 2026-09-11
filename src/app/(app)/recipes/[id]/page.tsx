@@ -270,385 +270,391 @@ export default function RecipeBuilderPage() {
       </div>
 
       <div className="page-body">
-
-        {/* Recipe details */}
-        <div className="card">
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 14 }}>
-            Recipe Details
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div className="input-group">
-              <label className="input-label">Recipe Name</label>
-              <input
-                className="input"
-                placeholder="e.g. Chocolate Muffins"
-                value={recipeName}
-                onChange={(e) => setRecipeName(e.target.value)}
-              />
-            </div>
-            
-            <div className="grid-2">
-              <div className="input-group">
-                <label className="input-label">Base Batch (units)</label>
-                <input
-                  className="input"
-                  type="number"
-                  min="1"
-                  placeholder="12"
-                  value={baseBatchSize}
-                  onChange={(e) => setBaseBatchSize(e.target.value)}
-                />
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+          {/* Left Column: Recipe Configuration & Overheads */}
+          <div className="md:col-span-7 flex flex-col gap-4">
+            {/* Recipe details */}
+            <div className="card">
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 14 }}>
+                Recipe Details
               </div>
-              <div className="input-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <label className="input-label" style={{ margin: 0 }}>Target Margin %</label>
-                  <button
-                    type="button"
-                    style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 11, fontWeight: 600, padding: 0, cursor: 'pointer' }}
-                    onClick={() => setShowMarginModal(true)}
-                  >
-                    📊 Overheads Calculator
-                  </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div className="input-group">
+                  <label className="input-label">Recipe Name</label>
+                  <input
+                    className="input"
+                    placeholder="e.g. Chocolate Muffins"
+                    value={recipeName}
+                    onChange={(e) => setRecipeName(e.target.value)}
+                  />
                 </div>
-                <input
-                  className="input"
-                  type="number"
-                  min="0"
-                  max="99"
-                  placeholder="60"
-                  value={targetMargin}
-                  onChange={(e) => setTargetMargin(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="input-group" style={{ marginTop: 12 }}>
-              <label className="input-label">Actual Batch Selling Price (R)</label>
-              <input
-                className="input"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={sellingPrice}
-                onChange={(e) => setSellingPrice(e.target.value)}
-              />
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                The total retail price you charge customers for this entire base batch of {baseBatchSize || '12'} units.
-              </span>
-            </div>
-
-            <div className="divider" style={{ margin: '4px 0' }} />
-            
-            {/* Labor fields */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-              <Clock size={16} color="var(--accent)" />
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Labor & Prep Costing
-              </span>
-            </div>
-
-            <div className="grid-2">
-              <div className="input-group">
-                <label className="input-label">Prep Time (minutes)</label>
-                <input
-                  className="input"
-                  type="number"
-                  min="0"
-                  placeholder="0"
-                  value={laborTimeMins}
-                  onChange={(e) => setLaborTimeMins(e.target.value)}
-                />
-              </div>
-              <div className="input-group">
-                <label className="input-label">Labor Rate (R / hour)</label>
-                <input
-                  className="input"
-                  type="number"
-                  min="0"
-                  placeholder="0.00"
-                  value={laborRatePerHour}
-                  onChange={(e) => setLaborRatePerHour(e.target.value)}
-                />
-              </div>
-            </div>
-            {baseLaborCost > 0 && (
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                Base labor cost: <strong>{formatZAR(baseLaborCost)}</strong> for {laborTimeMins} mins
-              </div>
-            )}
-
-            <div className="divider" style={{ margin: '4px 0' }} />
-
-            <div className="input-group">
-              <label className="input-label">⚡ Electricity Cost per Batch (R)</label>
-              <input
-                className="input"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={electricityCost}
-                onChange={(e) => setElectricityCost(e.target.value)}
-              />
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                Estimated electricity cost to bake one base batch (e.g. oven usage, mixer).
-              </span>
-            </div>
-
-            <div className="divider" style={{ margin: '4px 0' }} />
-
-            <div className="input-group">
-              <label className="input-label">💧 Utility Cost per Batch (R)</label>
-              <input
-                className="input"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={utilityCost}
-                onChange={(e) => setUtilityCost(e.target.value)}
-              />
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                Other direct batch utilities (e.g. water, washing, cooking gas, cleaning supplies).
-              </span>
-            </div>
-
-            <div className="divider" style={{ margin: '4px 0' }} />
-
-            <div className="input-group">
-              <label className="input-label">📦 Recipe Packaging Material</label>
-              <select
-                className="input"
-                value={packagingIngredientId}
-                onChange={(e) => setPackagingIngredientId(e.target.value)}
-              >
-                <option value="">No packaging material selected</option>
-                {allIngredients.map((i) => (
-                  <option key={i.id} value={i.id}>
-                    {i.name} ({formatZAR(i.cost_per_unit)}/{i.unit} · {i.current_stock} in stock)
-                  </option>
-                ))}
-              </select>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                Select a single packaging material (like a box or bag) used per baked unit. The cost scales with batch size and deducts from inventory.
-              </span>
-              {pkgIng && (
-                <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 8 }}>
-                  Base packaging cost: <strong>{formatZAR(basePackagingCost)}</strong> ({formatZAR(pkgIng.cost_per_unit)} × {baseBatchSize} units)
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Ingredients */}
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Ingredients
-            </span>
-            {!showAddRow && allIngredients.length > 0 && availableIngredients.length > 0 && (
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => setShowAddRow(true)}
-              >
-                <Plus size={14} /> Add
-              </button>
-            )}
-          </div>
-
-          {recipeIngredients.length === 0 && !showAddRow ? (
-            <div style={{ textAlign: 'center', padding: '24px 0' }}>
-              <ShoppingBasket size={28} color="var(--text-muted)" style={{ margin: '0 auto 8px', display: 'block', opacity: 0.5 }} />
-              {allIngredients.length === 0 ? (
-                <>
-                  <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 12 }}>No ingredients in your app yet</div>
-                  <Link href="/inventory" className="btn btn-secondary btn-sm">
-                    <Plus size={14} /> Add Ingredients First
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 12 }}>No ingredients added yet</div>
-                  <button className="btn btn-primary btn-sm" onClick={() => setShowAddRow(true)}>
-                    <Plus size={14} /> Add Ingredient
-                  </button>
-                </>
-              )}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {recipeIngredients.map((ri, i) => (
-                <div key={ri.id ?? ri._tempId} className="cost-row">
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {ri.ingredient?.name}
+                
+                <div className="grid-2">
+                  <div className="input-group">
+                    <label className="input-label">Base Batch (units)</label>
+                    <input
+                      className="input"
+                      type="number"
+                      min="1"
+                      placeholder="12"
+                      value={baseBatchSize}
+                      onChange={(e) => setBaseBatchSize(e.target.value)}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <label className="input-label" style={{ margin: 0 }}>Target Margin %</label>
+                      <button
+                        type="button"
+                        style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 11, fontWeight: 600, padding: 0, cursor: 'pointer' }}
+                        onClick={() => setShowMarginModal(true)}
+                      >
+                        📊 Overheads Calculator
+                      </button>
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                      {ri.quantity_at_base} {unitLabel(ri.ingredient?.unit ?? '')} ·{' '}
-                      {formatZAR((ri.quantity_at_base ?? 0) * (ri.ingredient?.cost_per_unit ?? 0))}
+                    <input
+                      className="input"
+                      type="number"
+                      min="0"
+                      max="99"
+                      placeholder="60"
+                      value={targetMargin}
+                      onChange={(e) => setTargetMargin(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="input-group" style={{ marginTop: 12 }}>
+                  <label className="input-label">Actual Batch Selling Price (R)</label>
+                  <input
+                    className="input"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={sellingPrice}
+                    onChange={(e) => setSellingPrice(e.target.value)}
+                  />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    The total retail price you charge customers for this entire base batch of {baseBatchSize || '12'} units.
+                  </span>
+                </div>
+
+                <div className="divider" style={{ margin: '4px 0' }} />
+                
+                {/* Labor fields */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                  <Clock size={16} color="var(--accent)" />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Labor & Prep Costing
+                  </span>
+                </div>
+
+                <div className="grid-2">
+                  <div className="input-group">
+                    <label className="input-label">Prep Time (minutes)</label>
+                    <input
+                      className="input"
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      value={laborTimeMins}
+                      onChange={(e) => setLaborTimeMins(e.target.value)}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Labor Rate (R / hour)</label>
+                    <input
+                      className="input"
+                      type="number"
+                      min="0"
+                      placeholder="0.00"
+                      value={laborRatePerHour}
+                      onChange={(e) => setLaborRatePerHour(e.target.value)}
+                    />
+                  </div>
+                </div>
+                {baseLaborCost > 0 && (
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                    Base labor cost: <strong>{formatZAR(baseLaborCost)}</strong> for {laborTimeMins} mins
+                  </div>
+                )}
+
+                <div className="divider" style={{ margin: '4px 0' }} />
+
+                <div className="input-group">
+                  <label className="input-label">⚡ Electricity Cost per Batch (R)</label>
+                  <input
+                    className="input"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={electricityCost}
+                    onChange={(e) => setElectricityCost(e.target.value)}
+                  />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    Estimated electricity cost to bake one base batch (e.g. oven usage, mixer).
+                  </span>
+                </div>
+
+                <div className="divider" style={{ margin: '4px 0' }} />
+
+                <div className="input-group">
+                  <label className="input-label">💧 Utility Cost per Batch (R)</label>
+                  <input
+                    className="input"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={utilityCost}
+                    onChange={(e) => setUtilityCost(e.target.value)}
+                  />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    Other direct batch utilities (e.g. water, washing, cooking gas, cleaning supplies).
+                  </span>
+                </div>
+
+                <div className="divider" style={{ margin: '4px 0' }} />
+
+                <div className="input-group">
+                  <label className="input-label">📦 Recipe Packaging Material</label>
+                  <select
+                    className="input"
+                    value={packagingIngredientId}
+                    onChange={(e) => setPackagingIngredientId(e.target.value)}
+                  >
+                    <option value="">No packaging material selected</option>
+                    {allIngredients.map((i) => (
+                      <option key={i.id} value={i.id}>
+                        {i.name} ({formatZAR(i.cost_per_unit)}/{i.unit} · {i.current_stock} in stock)
+                      </option>
+                    ))}
+                  </select>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    Select a single packaging material (like a box or bag) used per baked unit. The cost scales with batch size and deducts from inventory.
+                  </span>
+                  {pkgIng && (
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 8 }}>
+                      Base packaging cost: <strong>{formatZAR(basePackagingCost)}</strong> ({formatZAR(pkgIng.cost_per_unit)} × {baseBatchSize} units)
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Ingredients & Sticky Cost Preview */}
+          <div className="md:col-span-5 flex flex-col gap-4 md:sticky md:top-20">
+            {/* Ingredients */}
+            <div className="card">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Ingredients
+                </span>
+                {!showAddRow && allIngredients.length > 0 && availableIngredients.length > 0 && (
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setShowAddRow(true)}
+                  >
+                    <Plus size={14} /> Add
+                  </button>
+                )}
+              </div>
+
+              {recipeIngredients.length === 0 && !showAddRow ? (
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <ShoppingBasket size={28} color="var(--text-muted)" style={{ margin: '0 auto 8px', display: 'block', opacity: 0.5 }} />
+                  {allIngredients.length === 0 ? (
+                    <>
+                      <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 12 }}>No ingredients in your app yet</div>
+                      <Link href="/inventory" className="btn btn-secondary btn-sm">
+                        <Plus size={14} /> Add Ingredients First
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 12 }}>No ingredients added yet</div>
+                      <button className="btn btn-primary btn-sm" onClick={() => setShowAddRow(true)}>
+                        <Plus size={14} /> Add Ingredient
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                  {recipeIngredients.map((ri, i) => (
+                    <div key={ri.id ?? ri._tempId} className="cost-row">
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {ri.ingredient?.name}
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                          {ri.quantity_at_base} {unitLabel(ri.ingredient?.unit ?? '')} ·{' '}
+                          {formatZAR((ri.quantity_at_base ?? 0) * (ri.ingredient?.cost_per_unit ?? 0))}
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => removeRow(i)}
+                        style={{ padding: '4px 6px', color: 'var(--danger)' }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add row */}
+              {showAddRow && (
+                <div style={{ marginTop: 14, padding: 14, background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div className="input-group">
+                    <label className="input-label">Ingredient</label>
+                    <select className="input" value={addIngId} onChange={(e) => setAddIngId(e.target.value)}>
+                      <option value="">Select ingredient…</option>
+                      {availableIngredients.map((i) => (
+                        <option key={i.id} value={i.id}>{i.name} ({unitLabel(i.unit)})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">
+                      Quantity at base batch ({baseBatchSize || '?'} units)
+                    </label>
+                    <input
+                      className="input"
+                      type="number"
+                      min="0"
+                      step="any"
+                      placeholder="e.g. 250"
+                      value={addQty}
+                      onChange={(e) => setAddQty(e.target.value)}
+                    />
+                  </div>
+                  {allIngredients.length === 0 && (
+                    <p style={{ fontSize: 12, color: 'var(--warning)' }}>
+                      ⚠️ No ingredients yet. <Link href="/inventory" style={{ color: 'var(--accent)' }}>Add some first</Link>
+                    </p>
+                  )}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="btn btn-secondary btn-sm btn-full" onClick={() => setShowAddRow(false)}>Cancel</button>
+                    <button className="btn btn-primary btn-sm btn-full" onClick={addIngredientRow}>
+                      <Plus size={14} /> Add
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Cost preview */}
+            {recipeIngredients.length > 0 && (
+              <div className="card" style={{ background: 'var(--accent-subtle)', borderColor: 'rgba(232,168,56,0.2)' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
+                  Cost Preview (base batch)
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+                  <div className="flex-between" style={{ fontSize: 14 }}>
+                    <span className="text-secondary">Ingredients:</span>
+                    <span className="font-semibold">{formatZAR(baseIngredientCost)}</span>
+                  </div>
+                  <div className="flex-between" style={{ fontSize: 14 }}>
+                    <span className="text-secondary">Labor Time Cost:</span>
+                    <span className="font-semibold">{formatZAR(baseLaborCost)}</span>
+                  </div>
+                  {baseElectricityCost > 0 && (
+                    <div className="flex-between" style={{ fontSize: 14 }}>
+                      <span className="text-secondary">Electricity Cost:</span>
+                      <span className="font-semibold">{formatZAR(baseElectricityCost)}</span>
+                    </div>
+                  )}
+                  {basePackagingCost > 0 && (
+                    <div className="flex-between" style={{ fontSize: 14 }}>
+                      <span className="text-secondary">Packaging Cost:</span>
+                      <span className="font-semibold">{formatZAR(basePackagingCost)}</span>
+                    </div>
+                  )}
+                  {baseUtilityCost > 0 && (
+                    <div className="flex-between" style={{ fontSize: 14 }}>
+                      <span className="text-secondary">Utility Cost:</span>
+                      <span className="font-semibold">{formatZAR(baseUtilityCost)}</span>
+                    </div>
+                  )}
+                  <div className="divider" />
+                  <div className="flex-between">
+                    <span className="font-bold" style={{ color: 'var(--text-primary)' }}>Total Cost:</span>
+                    <span className="font-bold text-accent" style={{ fontSize: 18 }}>{formatZAR(baseCost)}</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                  <div>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--accent)' }}>
+                      {baseBatchSize && Number(baseBatchSize) > 0
+                        ? `${formatZAR(baseCost / Number(baseBatchSize))} per unit`
+                        : 'Set batch size'}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                      Based on yield of {baseBatchSize} units
                     </div>
                   </div>
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => removeRow(i)}
-                    style={{ padding: '4px 6px', color: 'var(--danger)' }}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <ChefHat size={32} color="var(--accent)" style={{ opacity: 0.4 }} />
                 </div>
-              ))}
-            </div>
-          )}
 
-          {/* Add row */}
-          {showAddRow && (
-            <div style={{ marginTop: 14, padding: 14, background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div className="input-group">
-                <label className="input-label">Ingredient</label>
-                <select className="input" value={addIngId} onChange={(e) => setAddIngId(e.target.value)}>
-                  <option value="">Select ingredient…</option>
-                  {availableIngredients.map((i) => (
-                    <option key={i.id} value={i.id}>{i.name} ({unitLabel(i.unit)})</option>
-                  ))}
-                </select>
-              </div>
-              <div className="input-group">
-                <label className="input-label">
-                  Quantity at base batch ({baseBatchSize || '?'} units)
-                </label>
-                <input
-                  className="input"
-                  type="number"
-                  min="0"
-                  step="any"
-                  placeholder="e.g. 250"
-                  value={addQty}
-                  onChange={(e) => setAddQty(e.target.value)}
-                />
-              </div>
-              {allIngredients.length === 0 && (
-                <p style={{ fontSize: 12, color: 'var(--warning)' }}>
-                  ⚠️ No ingredients yet. <Link href="/inventory" style={{ color: 'var(--accent)' }}>Add some first</Link>
-                </p>
-              )}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-secondary btn-sm btn-full" onClick={() => setShowAddRow(false)}>Cancel</button>
-                <button className="btn btn-primary btn-sm btn-full" onClick={addIngredientRow}>
-                  <Plus size={14} /> Add
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Cost preview */}
-        {recipeIngredients.length > 0 && (
-          <div className="card" style={{ background: 'var(--accent-subtle)', borderColor: 'rgba(232,168,56,0.2)' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
-              Cost Preview (base batch)
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
-              <div className="flex-between" style={{ fontSize: 14 }}>
-                <span className="text-secondary">Ingredients:</span>
-                <span className="font-semibold">{formatZAR(baseIngredientCost)}</span>
-              </div>
-              <div className="flex-between" style={{ fontSize: 14 }}>
-                <span className="text-secondary">Labor Time Cost:</span>
-                <span className="font-semibold">{formatZAR(baseLaborCost)}</span>
-              </div>
-              {baseElectricityCost > 0 && (
-                <div className="flex-between" style={{ fontSize: 14 }}>
-                  <span className="text-secondary">Electricity Cost:</span>
-                  <span className="font-semibold">{formatZAR(baseElectricityCost)}</span>
-                </div>
-              )}
-              {basePackagingCost > 0 && (
-                <div className="flex-between" style={{ fontSize: 14 }}>
-                  <span className="text-secondary">Packaging Cost:</span>
-                  <span className="font-semibold">{formatZAR(basePackagingCost)}</span>
-                </div>
-              )}
-              {baseUtilityCost > 0 && (
-                <div className="flex-between" style={{ fontSize: 14 }}>
-                  <span className="text-secondary">Utility Cost:</span>
-                  <span className="font-semibold">{formatZAR(baseUtilityCost)}</span>
-                </div>
-              )}
-              <div className="divider" />
-              <div className="flex-between">
-                <span className="font-bold" style={{ color: 'var(--text-primary)' }}>Total Cost:</span>
-                <span className="font-bold text-accent" style={{ fontSize: 18 }}>{formatZAR(baseCost)}</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-              <div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--accent)' }}>
-                  {baseBatchSize && Number(baseBatchSize) > 0
-                    ? `${formatZAR(baseCost / Number(baseBatchSize))} per unit`
-                    : 'Set batch size'}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                  Based on yield of {baseBatchSize} units
-                </div>
-              </div>
-              <ChefHat size={32} color="var(--accent)" style={{ opacity: 0.4 }} />
-            </div>
-
-            {sellingPriceVal > 0 ? (
-              <div style={{
-                marginTop: 16,
-                padding: '12px 14px',
-                borderRadius: 'var(--radius-sm)',
-                background: marginDiff >= 0 ? 'rgba(76, 175, 80, 0.08)' : 'rgba(244, 67, 54, 0.08)',
-                border: `1px solid ${marginDiff >= 0 ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 67, 54, 0.15)'}`,
-                color: marginDiff >= 0 ? '#81c784' : '#e57373',
-                fontSize: 13,
-                lineHeight: 1.4
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, marginBottom: 4 }}>
-                  {marginDiff >= 0 ? '🎉 Highly Profitable Batch' : '⚠️ Under Target Margin'}
-                </div>
-                <div style={{ color: 'var(--text-secondary)' }}>
-                  Your actual profit margin is <strong style={{ color: marginDiff >= 0 ? '#81c784' : '#e57373' }}>{actualMarginPct.toFixed(1)}%</strong> (Target is {marginTarget}%).
-                </div>
-                {marginDiff < 0 && (
-                  <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-primary)' }}>
-                    To hit your {marginTarget}% target margin, we recommend raising the selling price to{' '}
-                    <strong style={{ color: 'var(--accent)' }}>{formatZAR(recommendedSellingPrice)}</strong> (current price {formatZAR(sellingPriceVal)}).
+                {sellingPriceVal > 0 ? (
+                  <div style={{
+                    marginTop: 16,
+                    padding: '12px 14px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: marginDiff >= 0 ? 'rgba(76, 175, 80, 0.08)' : 'rgba(244, 67, 54, 0.08)',
+                    border: `1px solid ${marginDiff >= 0 ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 67, 54, 0.15)'}`,
+                    color: marginDiff >= 0 ? '#81c784' : '#e57373',
+                    fontSize: 13,
+                    lineHeight: 1.4
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, marginBottom: 4 }}>
+                      {marginDiff >= 0 ? '🎉 Highly Profitable Batch' : '⚠️ Under Target Margin'}
+                    </div>
+                    <div style={{ color: 'var(--text-secondary)' }}>
+                      Your actual profit margin is <strong style={{ color: marginDiff >= 0 ? '#81c784' : '#e57373' }}>{actualMarginPct.toFixed(1)}%</strong> (Target is {marginTarget}%).
+                    </div>
+                    {marginDiff < 0 && (
+                      <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-primary)' }}>
+                        To hit your {marginTarget}% target margin, we recommend raising the selling price to{' '}
+                        <strong style={{ color: 'var(--accent)' }}>{formatZAR(recommendedSellingPrice)}</strong> (current price {formatZAR(sellingPriceVal)}).
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{
+                    marginTop: 16,
+                    padding: '12px 14px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--bg-elevated)',
+                    border: '1px dashed var(--border-light)',
+                    color: 'var(--text-muted)',
+                    fontSize: 12,
+                    lineHeight: 1.4
+                  }}>
+                    💡 Enter your **Actual Batch Selling Price** above to validate your recipe profit margins and see live alerts.
                   </div>
                 )}
               </div>
-            ) : (
-              <div style={{
-                marginTop: 16,
-                padding: '12px 14px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--bg-elevated)',
-                border: '1px dashed var(--border-light)',
-                color: 'var(--text-muted)',
-                fontSize: 12,
-                lineHeight: 1.4
-              }}>
-                💡 Enter your **Actual Batch Selling Price** above to validate your recipe profit margins and see live alerts.
-              </div>
             )}
+
+            <button
+              className="btn btn-primary btn-full btn-lg"
+              onClick={handleSave}
+              disabled={saving}
+              style={{ marginTop: 8 }}
+            >
+              {saving ? <div className="spinner" /> : <Check size={18} />}
+              {saving ? 'Saving…' : isNew ? 'Create Recipe' : 'Save Changes'}
+            </button>
           </div>
-        )}
-
-        <button
-          className="btn btn-primary btn-full btn-lg"
-          onClick={handleSave}
-          disabled={saving}
-          style={{ marginTop: 8 }}
-        >
-          {saving ? <div className="spinner" /> : <Check size={18} />}
-          {saving ? 'Saving…' : isNew ? 'Create Recipe' : 'Save Changes'}
-        </button>
-
+        </div>
       </div>
 
       {/* Overheads & Target Margin Calculator Modal */}

@@ -7,7 +7,7 @@ import {
   WastageLog, IngredientPriceHistory, BakerySettings 
 } from '@/types';
 import { 
-  Plus, Download, Printer, Settings, X, 
+  Plus, Download, Printer, Settings, X, Check,
   BarChart3, AlertTriangle, TrendingUp, TrendingDown, Package, PieChart
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
@@ -155,66 +155,75 @@ export default function ReportsPage() {
   const totalWastageCost = wastage.reduce((sum, w) => sum + Number(w.cost_lost), 0);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white pb-24">
-      <div className="p-6">
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-amber-500">Analytics & Reports</h1>
-          <div className="flex gap-2">
-            <button onClick={handleExportCSV} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition" title="Export CSV">
-              <Download size={20} className="text-gray-300" />
-            </button>
-            <button onClick={handlePrintPDF} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition" title="Print PDF">
-              <Printer size={20} className="text-gray-300" />
-            </button>
-          </div>
-        </header>
+    <div className="pb-24">
+      <div className="page-header justify-between">
+        <div>
+          <h1 className="page-title text-[var(--accent)]">Analytics & Reports</h1>
+          <p className="text-xs text-[var(--text-muted)]">Customizable bakery dashboard</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={handleExportCSV} className="btn btn-secondary btn-sm" title="Export CSV">
+            <Download size={16} />
+            <span className="hidden sm:inline">CSV</span>
+          </button>
+          <button onClick={handlePrintPDF} className="btn btn-secondary btn-sm" title="Print PDF">
+            <Printer size={16} />
+            <span className="hidden sm:inline">PDF</span>
+          </button>
+        </div>
+      </div>
 
+      <div className="page-body">
         {activeWidgets.length === 0 && (
-          <div className="bg-gray-800 border border-amber-500/30 rounded-xl p-6 text-center mb-6 shadow-lg shadow-amber-900/20">
-            <BarChart3 className="mx-auto text-amber-500 mb-3" size={48} />
-            <h2 className="text-xl font-semibold mb-2">Build Your Dashboard</h2>
-            <p className="text-gray-400 mb-4 max-w-md mx-auto">
+          <div className="card text-center p-8 border-dashed border-[var(--accent)]/40 bg-[var(--accent-subtle)]">
+            <BarChart3 className="mx-auto text-[var(--accent)] mb-3" size={48} />
+            <h2 className="text-xl font-bold mb-2">Build Your Dashboard</h2>
+            <p className="text-sm text-[var(--text-secondary)] mb-6 max-w-md mx-auto">
               Welcome to the Report Builder. Customize your analytics by adding the widgets that matter most to your bakery.
             </p>
             <button 
               onClick={() => setShowCatalog(true)}
-              className="bg-amber-600 hover:bg-amber-500 text-white px-6 py-2 rounded-full font-medium transition flex items-center justify-center gap-2 mx-auto"
+              className="btn btn-primary mx-auto"
             >
-              <Plus size={18} /> Add Your First Widget
+              <Plus size={16} /> Add Your First Widget
             </button>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           
           {/* Widget Rendering */}
           {activeWidgets.includes('top-products') && (
-            <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><BarChart3 size={18} className="text-amber-500"/> Top Products (Demand)</h3>
+            <div className="card p-5">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-[var(--text-primary)]">
+                <BarChart3 size={18} className="text-[var(--accent)]"/> Top Products (Demand)
+              </h3>
               <div className="h-64">
                 {chartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="name" stroke="#9ca3af" tick={{fill: '#9ca3af'}} />
-                      <YAxis stroke="#9ca3af" tick={{fill: '#9ca3af'}} />
-                      <Tooltip contentStyle={{backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff'}} />
-                      <Bar dataKey="volume" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(247, 235, 214, 0.1)" />
+                      <XAxis dataKey="name" stroke="var(--text-secondary)" tick={{fill: 'var(--text-secondary)'}} />
+                      <YAxis stroke="var(--text-secondary)" tick={{fill: 'var(--text-secondary)'}} />
+                      <Tooltip contentStyle={{backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-light)', borderRadius: '8px', color: 'var(--text-primary)'}} />
+                      <Bar dataKey="volume" fill="var(--accent)" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-full flex items-center justify-center text-gray-500">No production data yet.</div>
+                  <div className="h-full flex items-center justify-center text-[var(--text-muted)]">No production data yet.</div>
                 )}
               </div>
             </div>
           )}
 
           {activeWidgets.includes('profitability') && (
-            <div className="bg-gray-800 rounded-xl p-5 border border-gray-700 overflow-x-auto">
-              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><TrendingUp size={18} className="text-green-500"/> Profitability Leaderboard</h3>
+            <div className="card p-5 overflow-x-auto">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-[var(--text-primary)]">
+                <TrendingUp size={18} className="text-[var(--success)]"/> Profitability Leaderboard
+              </h3>
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-gray-700 text-gray-400 text-sm">
+                  <tr className="border-b border-[var(--border)] text-[var(--text-muted)] text-sm">
                     <th className="pb-2">Recipe</th>
                     <th className="pb-2 text-right">Target Margin</th>
                     <th className="pb-2 text-right">Selling Price</th>
@@ -222,71 +231,78 @@ export default function ReportsPage() {
                 </thead>
                 <tbody>
                   {recipes.sort((a,b) => b.target_margin_pct - a.target_margin_pct).slice(0,5).map(r => (
-                    <tr key={r.id} className="border-b border-gray-700/50">
+                    <tr key={r.id} className="border-b border-[var(--border)]/50">
                       <td className="py-3 font-medium">{r.name}</td>
-                      <td className="py-3 text-right text-green-400">{r.target_margin_pct}%</td>
+                      <td className="py-3 text-right text-[var(--success)] font-semibold">{r.target_margin_pct}%</td>
                       <td className="py-3 text-right">R{r.selling_price?.toFixed(2) || '0.00'}</td>
                     </tr>
                   ))}
-                  {recipes.length === 0 && <tr><td colSpan={3} className="py-4 text-center text-gray-500">No recipes found.</td></tr>}
+                  {recipes.length === 0 && <tr><td colSpan={3} className="py-4 text-center text-[var(--text-muted)]">No recipes found.</td></tr>}
                 </tbody>
               </table>
             </div>
           )}
 
           {activeWidgets.includes('break-even') && (
-            <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><PieChart size={18} className="text-blue-500"/> Break-Even Progress</h3>
-              <p className="text-sm text-gray-400 mb-4">Gross profit generated vs monthly overhead target.</p>
-              {/* Dummy data for now since we don't have exact sales/margin logs yet */}
-              <div className="w-full bg-gray-700 rounded-full h-4 mb-2">
-                <div className="bg-blue-500 h-4 rounded-full" style={{ width: '45%' }}></div>
+            <div className="card p-5">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-[var(--text-primary)]">
+                <PieChart size={18} className="text-[#E8A9B8]"/> Break-Even Progress
+              </h3>
+              <p className="text-sm text-[var(--text-muted)] mb-4">Gross profit generated vs monthly overhead target.</p>
+              <div className="w-full bg-[var(--bg-base)] rounded-full h-4 mb-2 overflow-hidden">
+                <div className="bg-[var(--accent)] h-4 rounded-full" style={{ width: '45%' }}></div>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-300">R2,250 Generated</span>
-                <span className="text-gray-500">Target: R{settings?.monthly_overhead_target || 5000}</span>
+                <span className="text-[var(--text-primary)]">R2,250 Generated</span>
+                <span className="text-[var(--text-muted)]">Target: R{settings?.monthly_overhead_target || 5000}</span>
               </div>
             </div>
           )}
 
           {activeWidgets.includes('slow-stock') && (
-            <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><Package size={18} className="text-purple-500"/> Slow Moving Stock</h3>
+            <div className="card p-5">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-[var(--text-primary)]">
+                <Package size={18} className="text-[var(--accent-dim)]"/> Slow Moving Stock
+              </h3>
               <ul className="space-y-3">
                 {slowIngredients.map(ing => (
-                  <li key={ing.id} className="flex justify-between items-center bg-gray-700/30 p-3 rounded-lg">
+                  <li key={ing.id} className="flex justify-between items-center bg-[var(--bg-base)] p-3 rounded-lg">
                     <span>{ing.name}</span>
-                    <span className="text-gray-400">{ing.current_stock} {ing.unit} in stock</span>
+                    <span className="text-[var(--text-muted)]">{ing.current_stock} {ing.unit} in stock</span>
                   </li>
                 ))}
-                {slowIngredients.length === 0 && <li className="text-gray-500 text-center py-4">No slow moving stock detected!</li>}
+                {slowIngredients.length === 0 && <li className="text-[var(--text-muted)] text-center py-4">No slow moving stock detected!</li>}
               </ul>
             </div>
           )}
 
           {activeWidgets.includes('inflation') && (
-            <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><TrendingDown size={18} className="text-red-500"/> Cost Inflation Alerts</h3>
+            <div className="card p-5">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-[var(--text-primary)]">
+                <TrendingDown size={18} className="text-[var(--danger)]"/> Cost Inflation Alerts
+              </h3>
               <ul className="space-y-3">
                 {priceHistory.map(ph => (
-                  <li key={ph.id} className="flex justify-between items-center bg-red-900/20 border border-red-500/20 p-3 rounded-lg">
-                    <span className="text-gray-300 text-sm">Ingredient #{ph.ingredient_id.substring(0,6)}</span>
+                  <li key={ph.id} className="flex justify-between items-center bg-[var(--danger-bg)] border border-[var(--danger)]/20 p-3 rounded-lg">
+                    <span className="text-[var(--text-primary)] text-sm">Ingredient #{ph.ingredient_id.substring(0,6)}</span>
                     <div className="text-right">
-                      <span className="text-xs text-gray-500 line-through mr-2">R{ph.old_price}</span>
-                      <span className="text-red-400 font-bold">R{ph.new_price}</span>
+                      <span className="text-xs text-[var(--text-muted)] line-through mr-2">R{ph.old_price}</span>
+                      <span className="text-[var(--danger)] font-bold">R{ph.new_price}</span>
                     </div>
                   </li>
                 ))}
-                {priceHistory.length === 0 && <li className="text-gray-500 text-center py-4">No recent price changes.</li>}
+                {priceHistory.length === 0 && <li className="text-[var(--text-muted)] text-center py-4">No recent price changes.</li>}
               </ul>
             </div>
           )}
 
           {activeWidgets.includes('wastage') && (
-            <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
-              <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><AlertTriangle size={18} className="text-red-500"/> Wastage Summary</h3>
-              <div className="text-3xl font-bold text-red-500 mb-4">R{totalWastageCost.toFixed(2)} <span className="text-sm font-normal text-gray-500">lost this month</span></div>
-              <Link href="/wastage" className="text-amber-500 hover:text-amber-400 text-sm font-medium flex items-center gap-1">
+            <div className="card p-5">
+              <h3 className="font-semibold text-lg mb-2 flex items-center gap-2 text-[var(--text-primary)]">
+                <AlertTriangle size={18} className="text-[var(--danger)]"/> Wastage Summary
+              </h3>
+              <div className="text-3xl font-bold text-[var(--danger)] mb-4">R{totalWastageCost.toFixed(2)} <span className="text-sm font-normal text-[var(--text-muted)]">lost this month</span></div>
+              <Link href="/wastage" className="text-[var(--accent)] hover:underline text-sm font-medium flex items-center gap-1">
                 Log New Wastage &rarr;
               </Link>
             </div>
@@ -296,28 +312,27 @@ export default function ReportsPage() {
           {activeWidgets.length > 0 && (
             <button 
               onClick={() => setShowCatalog(true)}
-              className="bg-gray-800/50 hover:bg-gray-800 border-2 border-dashed border-gray-600 rounded-xl p-5 flex flex-col items-center justify-center text-gray-400 hover:text-amber-500 hover:border-amber-500/50 transition min-h-[200px]"
+              className="card border-2 border-dashed border-[var(--border-light)] hover:border-[var(--accent)] p-5 flex flex-col items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] transition min-h-[200px]"
             >
               <Plus size={32} className="mb-2" />
-              <span className="font-medium">Add Widget</span>
+              <span className="font-semibold">Add / Remove Widgets</span>
             </button>
           )}
-
         </div>
       </div>
 
-      {/* Widget Catalog Modal */}
+      {/* Catalog Modal */}
       {showCatalog && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl">
-            <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-800/50">
-              <h2 className="text-xl font-bold">Widget Library</h2>
-              <button onClick={() => setShowCatalog(false)} className="text-gray-400 hover:text-white p-2">
-                <X size={24} />
+        <div className="modal-overlay" onClick={() => setShowCatalog(false)}>
+          <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold">Customize Dashboard</h3>
+              <button onClick={() => setShowCatalog(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                <X size={20} />
               </button>
             </div>
             
-            <div className="p-4 max-h-[70vh] overflow-y-auto">
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {WIDGET_CATALOG.map(widget => {
                   const isActive = activeWidgets.includes(widget.id);
@@ -326,32 +341,32 @@ export default function ReportsPage() {
                     <div 
                       key={widget.id}
                       onClick={() => toggleWidget(widget.id)}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition ${
+                      className={`p-4 rounded-xl border cursor-pointer transition ${
                         isActive 
-                          ? 'border-amber-500 bg-amber-500/10' 
-                          : 'border-gray-700 bg-gray-800 hover:border-gray-500'
+                          ? 'border-[var(--accent)] bg-[var(--accent-subtle)]' 
+                          : 'border-[var(--border)] bg-[var(--bg-base)] hover:border-[var(--accent)]/50'
                       }`}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <Icon size={24} className={isActive ? 'text-amber-500' : 'text-gray-400'} />
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          isActive ? 'border-amber-500 bg-amber-500' : 'border-gray-600'
+                        <Icon size={24} className={isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'} />
+                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                          isActive ? 'border-[var(--accent)] bg-[var(--accent)] text-[#1a1612]' : 'border-[var(--border)]'
                         }`}>
-                          {isActive && <div className="w-2 h-2 bg-gray-900 rounded-full" />}
+                          {isActive && <Check size={12} strokeWidth={3} />}
                         </div>
                       </div>
-                      <h4 className="font-semibold mb-1">{widget.label}</h4>
-                      <p className="text-sm text-gray-400">{widget.desc}</p>
+                      <h4 className="font-semibold mb-1 text-[var(--text-primary)]">{widget.label}</h4>
+                      <p className="text-xs text-[var(--text-muted)]">{widget.desc}</p>
                     </div>
                   );
                 })}
               </div>
             </div>
             
-            <div className="p-4 border-t border-gray-800 bg-gray-800/50 text-right">
+            <div className="pt-6 border-t border-[var(--border)] mt-6 text-right">
               <button 
                 onClick={() => setShowCatalog(false)}
-                className="bg-amber-600 text-white px-6 py-2 rounded-lg font-medium"
+                className="btn btn-primary"
               >
                 Done
               </button>

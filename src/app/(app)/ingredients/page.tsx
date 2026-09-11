@@ -304,7 +304,7 @@ export default function IngredientsPage() {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {ingredients.map((ing) => {
               const s = status(ing);
               return (

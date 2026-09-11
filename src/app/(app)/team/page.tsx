@@ -108,36 +108,36 @@ export default function TeamPage() {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto text-[#F7EBD6] pb-24">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <button onClick={() => router.back()} className="text-[#F7EBD6]/60 hover:text-[#F7EBD6]">
-            <ArrowLeft size={20} />
-          </button>
-          <h1 className="text-3xl font-bold flex items-center">
-            <Users className="w-8 h-8 mr-3 text-[#C8792A]" />
-            Team
+    <>
+      <div className="page-header">
+        <button onClick={() => router.back()} className="btn btn-ghost btn-sm" style={{ padding: '6px 8px' }}>
+          <ArrowLeft size={18} />
+        </button>
+        <div style={{ flex: 1 }}>
+          <h1 className="page-title flex items-center gap-2">
+            <Users className="w-5 h-5 text-[#C8792A]" /> Team
           </h1>
+          {bakeryName && <p className="text-xs text-[var(--text-muted)] mt-0.5">{bakeryName}</p>}
         </div>
-        {bakeryName && <p className="text-[#F7EBD6]/70 ml-8">{bakeryName}</p>}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="space-y-6">
-          <div className="bg-[#6B3A1F] rounded-xl p-6">
-            <h2 className="text-xl font-bold mb-4 flex items-center">
+      <div className="page-body">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+          {/* Active Members */}
+          <div className="card">
+            <h2 className="text-base font-bold mb-4 flex items-center text-primary">
               <Shield className="w-5 h-5 mr-2 text-[#C8792A]" />
               Active Members
             </h2>
             {isLoading ? (
-              <p className="text-sm text-[#F7EBD6]/60">Loading members...</p>
+              <p className="text-xs text-[var(--text-muted)]">Loading members...</p>
             ) : (
-              <ul className="space-y-4">
+              <ul className="space-y-3">
                 {members.map(m => (
-                  <li key={m.id} className="flex items-center justify-between bg-[#3B2416] p-3 rounded-lg">
-                    <span className="font-medium">{m.id === user?.id ? `${user.email} (You)` : `Member #${m.id.substring(0, 6)}`}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full uppercase font-bold ${
-                      m.role === 'owner' ? 'bg-[#C8792A] text-[#3B2416]' : 'bg-[#F7EBD6]/20 text-[#F7EBD6]'
+                  <li key={m.id} className="flex items-center justify-between bg-[var(--bg-base)] border border-[var(--border)] p-3 rounded-lg">
+                    <span className="text-sm font-medium">{m.id === user?.id ? `${user.email} (You)` : `Member #${m.id.substring(0, 6)}`}</span>
+                    <span className={`text-xs px-2.5 py-0.5 rounded-full uppercase font-bold ${
+                      m.role === 'owner' ? 'bg-[#C8792A] text-[#3B2416]' : 'bg-[var(--text-primary)]/15 text-[var(--text-primary)]'
                     }`}>
                       {m.role}
                     </span>
@@ -146,27 +146,29 @@ export default function TeamPage() {
               </ul>
             )}
           </div>
-        </div>
 
-        {isOwner && (
-          <div className="space-y-6">
-            <div className="bg-[#6B3A1F] rounded-xl p-6">
-              <h2 className="text-xl font-bold mb-4 flex items-center">
+          {/* Invite Member */}
+          {isOwner && (
+            <div className="card">
+              <h2 className="text-base font-bold mb-4 flex items-center text-primary">
                 <UserPlus className="w-5 h-5 mr-2 text-[#C8792A]" />
                 Invite Team Member
               </h2>
               <form onSubmit={handleInvite} className="flex flex-col gap-3 mb-6">
-                <input
-                  type="email"
-                  required
-                  placeholder="Staff email address"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  className="bg-[#3B2416] border border-[#C8792A]/30 rounded-lg px-4 py-2 text-[#F7EBD6] placeholder:text-[#F7EBD6]/50 focus:outline-none focus:border-[#C8792A]"
-                />
+                <div className="input-group">
+                  <label className="input-label">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="staff@bakery.co.za"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    className="input"
+                  />
+                </div>
                 <button 
                   type="submit"
-                  className="bg-[#C8792A] hover:bg-[#C8792A]/90 text-[#3B2416] px-4 py-2 rounded-lg font-bold transition-colors"
+                  className="btn btn-primary btn-full"
                 >
                   Send Invite
                 </button>
@@ -174,17 +176,17 @@ export default function TeamPage() {
 
               {invites.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-[#F7EBD6]/70 mb-3 uppercase tracking-wider">Pending Invites</h3>
+                  <h3 className="input-label mb-3">Pending Invites</h3>
                   <ul className="space-y-2">
                     {invites.map(inv => (
-                      <li key={inv.id} className="flex items-center justify-between bg-[#3B2416] p-3 rounded-lg text-sm">
-                        <div className="flex items-center">
-                          <Mail className="w-4 h-4 mr-2 text-[#F7EBD6]/50" />
+                      <li key={inv.id} className="flex items-center justify-between bg-[var(--bg-base)] border border-[var(--border)] p-3 rounded-lg text-sm">
+                        <div className="flex items-center text-xs text-[var(--text-primary)]">
+                          <Mail className="w-4 h-4 mr-2 text-[var(--text-muted)]" />
                           {inv.invited_email}
                         </div>
                         <button
                           onClick={() => handleRevoke(inv.id)}
-                          className="text-[#E8A9B8] hover:bg-[#E8A9B8]/10 p-1 rounded transition-colors"
+                          className="btn btn-ghost btn-sm text-[var(--accent-dim)] hover:bg-[var(--accent-dim)]/10"
                           title="Revoke Invite"
                         >
                           <X className="w-4 h-4" />
@@ -195,8 +197,8 @@ export default function TeamPage() {
                 </div>
               )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <UpgradePrompt
@@ -204,6 +206,6 @@ export default function TeamPage() {
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
       />
-    </div>
+    </>
   );
 }

@@ -62,7 +62,7 @@ export default function ScalePickerPage() {
             </Link>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {recipes.map((recipe) => (
               <Link key={recipe.id} href={`/scale/${recipe.id}`} className="list-item">
                 <div className="list-item-icon">
