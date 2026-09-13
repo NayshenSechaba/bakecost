@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, X } from 'lucide-react';
 import Link from 'next/link';
 
 interface UpgradePromptProps {
@@ -14,27 +14,31 @@ export default function UpgradePrompt({ feature, isOpen, onClose }: UpgradePromp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-md rounded-xl bg-[var(--bg-surface)] p-6 shadow-xl border border-[var(--border)]">
-        <div className="flex flex-col items-center text-center">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)]/20 text-[var(--accent)]">
-            <Lock className="h-6 w-6" />
+    <div
+      className="modal-overlay"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="modal-sheet" style={{ maxWidth: '420px' }}>
+        <div className="modal-handle" />
+        <div className="flex flex-col items-center text-center p-2">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FAEEDA] text-[#854F0B] shadow-sm">
+            <Lock className="h-7 w-7" />
           </div>
-          <h2 className="mb-2 text-xl font-bold text-[var(--text-primary)]">Upgrade to Unlock</h2>
-          <p className="mb-6 text-sm text-[var(--text-primary)]/80">
-            The {feature} feature is available on paid plans.
+          <h2 className="mb-2 text-xl font-extrabold text-slate-900">Upgrade to Unlock</h2>
+          <p className="mb-6 text-sm text-slate-600 leading-relaxed">
+            The <strong>{feature}</strong> feature is available exclusively on paid Doughnomics plans.
           </p>
           <div className="flex w-full flex-col gap-3 sm:flex-row">
             <Link
               href="/pricing"
-              className="flex-1 rounded-lg bg-[var(--accent)] px-4 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-[var(--accent)]/90"
+              className="btn btn-primary flex-1 py-3"
               onClick={onClose}
             >
               View Plans
             </Link>
             <button
               onClick={onClose}
-              className="flex-1 rounded-lg border border-[var(--border)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-elevated)]"
+              className="btn btn-secondary flex-1 py-3"
             >
               Maybe Later
             </button>

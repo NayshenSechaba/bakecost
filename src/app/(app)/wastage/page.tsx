@@ -136,12 +136,14 @@ export default function WastagePage() {
         <button onClick={() => router.back()} className="btn btn-ghost btn-sm" style={{ padding: '6px 8px' }}>
           <ArrowLeft size={18} />
         </button>
-        <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--danger)' }}>
-          <AlertTriangle size={20} /> Wastage Tracker
-        </h1>
+        <div style={{ flex: 1 }}>
+          <h1 className="page-title flex items-center gap-2">
+            <AlertTriangle size={20} className="text-[#A32D2D]" /> Wastage Tracker
+          </h1>
+        </div>
         <button 
           onClick={() => setShowForm(!showForm)}
-          className="btn btn-danger btn-sm"
+          className={showForm ? "btn btn-secondary btn-sm" : "btn btn-primary btn-sm"}
           style={{ flexShrink: 0 }}
         >
           {showForm ? <X size={15} /> : <Plus size={15} />}
@@ -151,9 +153,9 @@ export default function WastagePage() {
 
       <div className="page-body">
         {/* Total lost metric */}
-        <div className="card" style={{ background: 'var(--danger-bg)', borderColor: 'rgba(239, 68, 68, 0.3)', padding: '16px 20px' }}>
-          <div className="stat-label" style={{ color: 'var(--danger)' }}>Total Value Lost (All Time)</div>
-          <div className="stat-value" style={{ color: 'var(--danger)', fontSize: 32, marginTop: 4 }}>
+        <div className="card" style={{ background: '#FBEAEB', borderColor: '#F5C2C7', padding: '16px 20px', marginBottom: 16 }}>
+          <div className="stat-label" style={{ color: '#A32D2D' }}>Total Value Lost (All Time)</div>
+          <div className="stat-value" style={{ color: '#A32D2D', fontSize: 32, marginTop: 4 }}>
             R{totalLoss.toFixed(2)}
           </div>
         </div>
@@ -222,7 +224,7 @@ export default function WastagePage() {
                 <button 
                   type="submit" 
                   disabled={submitting}
-                  className="btn btn-danger btn-full btn-lg"
+                  className="btn btn-primary btn-full btn-lg"
                   style={{ marginTop: 4 }}
                 >
                   {submitting ? <div className="spinner" /> : <AlertTriangle size={18} />}
@@ -263,7 +265,7 @@ export default function WastagePage() {
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-                      <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--danger)' }}>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: '#A32D2D' }}>
                         -R{Number(log.cost_lost).toFixed(2)}
                       </span>
                       <button onClick={() => handleDelete(log.id)} className="btn btn-ghost btn-sm" style={{ padding: '4px 6px', color: 'var(--text-muted)' }}>

@@ -115,9 +115,9 @@ export default function TeamPage() {
         </button>
         <div style={{ flex: 1 }}>
           <h1 className="page-title flex items-center gap-2">
-            <Users className="w-5 h-5 text-[#C8792A]" /> Team
+            <Users className="w-5 h-5 text-[#C68A4C]" /> Team
           </h1>
-          {bakeryName && <p className="text-xs text-[var(--text-muted)] mt-0.5">{bakeryName}</p>}
+          {bakeryName && <p className="text-xs text-slate-400 mt-0.5">{bakeryName}</p>}
         </div>
       </div>
 
@@ -125,19 +125,21 @@ export default function TeamPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           {/* Active Members */}
           <div className="card">
-            <h2 className="text-base font-bold mb-4 flex items-center text-primary">
-              <Shield className="w-5 h-5 mr-2 text-[#C8792A]" />
+            <h2 className="text-base font-bold mb-4 flex items-center text-slate-900">
+              <Shield className="w-5 h-5 mr-2 text-[#C68A4C]" />
               Active Members
             </h2>
             {isLoading ? (
-              <p className="text-xs text-[var(--text-muted)]">Loading members...</p>
+              <p className="text-xs text-slate-400">Loading members...</p>
             ) : (
               <ul className="space-y-3">
                 {members.map(m => (
-                  <li key={m.id} className="flex items-center justify-between bg-[var(--bg-base)] border border-[var(--border)] p-3 rounded-lg">
-                    <span className="text-sm font-medium">{m.id === user?.id ? `${user.email} (You)` : `Member #${m.id.substring(0, 6)}`}</span>
+                  <li key={m.id} className="flex items-center justify-between bg-sand-50 border border-[#E3DED6] p-3 rounded-xl">
+                    <span className="text-sm font-semibold text-slate-900">
+                      {m.id === user?.id ? `${user.email} (You)` : `Member #${m.id.substring(0, 6)}`}
+                    </span>
                     <span className={`text-xs px-2.5 py-0.5 rounded-full uppercase font-bold ${
-                      m.role === 'owner' ? 'bg-[#C8792A] text-[#3B2416]' : 'bg-[var(--text-primary)]/15 text-[var(--text-primary)]'
+                      m.role === 'owner' ? 'bg-[#C68A4C] text-white' : 'bg-sand-200 text-slate-700'
                     }`}>
                       {m.role}
                     </span>
@@ -150,8 +152,8 @@ export default function TeamPage() {
           {/* Invite Member */}
           {isOwner && (
             <div className="card">
-              <h2 className="text-base font-bold mb-4 flex items-center text-primary">
-                <UserPlus className="w-5 h-5 mr-2 text-[#C8792A]" />
+              <h2 className="text-base font-bold mb-4 flex items-center text-slate-900">
+                <UserPlus className="w-5 h-5 mr-2 text-[#C68A4C]" />
                 Invite Team Member
               </h2>
               <form onSubmit={handleInvite} className="flex flex-col gap-3 mb-6">
@@ -179,14 +181,14 @@ export default function TeamPage() {
                   <h3 className="input-label mb-3">Pending Invites</h3>
                   <ul className="space-y-2">
                     {invites.map(inv => (
-                      <li key={inv.id} className="flex items-center justify-between bg-[var(--bg-base)] border border-[var(--border)] p-3 rounded-lg text-sm">
-                        <div className="flex items-center text-xs text-[var(--text-primary)]">
-                          <Mail className="w-4 h-4 mr-2 text-[var(--text-muted)]" />
+                      <li key={inv.id} className="flex items-center justify-between bg-sand-50 border border-[#E3DED6] p-3 rounded-xl text-sm">
+                        <div className="flex items-center text-xs text-slate-800 font-medium">
+                          <Mail className="w-4 h-4 mr-2 text-slate-400" />
                           {inv.invited_email}
                         </div>
                         <button
                           onClick={() => handleRevoke(inv.id)}
-                          className="btn btn-ghost btn-sm text-[var(--accent-dim)] hover:bg-[var(--accent-dim)]/10"
+                          className="btn btn-ghost btn-sm text-[#A32D2D] hover:bg-[#FBEAEB]"
                           title="Revoke Invite"
                         >
                           <X className="w-4 h-4" />

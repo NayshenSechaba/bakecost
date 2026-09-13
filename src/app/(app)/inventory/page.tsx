@@ -308,23 +308,23 @@ export default function InventoryPage() {
       <div className="page-body">
 
         {/* Summary strip */}
-        <div className="grid-2" style={{ gap: 8 }}>
-          <div className="stat-card" style={{ background: 'var(--success-bg)', borderColor: 'rgba(76,175,125,0.2)' }}>
-            <div className="stat-label" style={{ color: 'var(--success)' }}>Stocked OK</div>
-            <div className="stat-value success">
+        <div className="grid-2" style={{ gap: 12, marginBottom: 12 }}>
+          <div className="stat-card" style={{ background: '#EAF5EC', borderColor: '#C3E6CB' }}>
+            <div className="stat-label" style={{ color: '#1E7E34' }}>Stocked OK</div>
+            <div className="stat-value" style={{ color: '#1E7E34' }}>
               {loading ? '—' : ingredients.filter((i) => stockStatus(i.current_stock, i.low_stock_threshold) === 'ok').length}
             </div>
           </div>
           <div className="stat-card" style={{
-            background: criticalCount > 0 ? 'var(--danger-bg)' : 'var(--warning-bg)',
-            borderColor: criticalCount > 0 ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'
+            background: criticalCount > 0 ? '#FBEAEB' : '#FAEEDA',
+            borderColor: criticalCount > 0 ? '#F5C2C7' : '#F7E1B5'
           }}>
-            <div className="stat-label" style={{ color: criticalCount > 0 ? 'var(--danger)' : 'var(--warning)' }}>
+            <div className="stat-label" style={{ color: criticalCount > 0 ? '#A32D2D' : '#854F0B' }}>
               Need Restock
             </div>
             <div
-              className={`stat-value ${criticalCount > 0 ? 'danger' : 'warning'}`}
-              style={{ color: criticalCount > 0 ? 'var(--danger)' : 'var(--warning)' }}
+              className="stat-value"
+              style={{ color: criticalCount > 0 ? '#A32D2D' : '#854F0B' }}
             >
               {loading ? '—' : criticalCount + lowCount}
             </div>
@@ -362,29 +362,29 @@ export default function InventoryPage() {
                   style={{
                     padding: '14px 16px',
                     borderColor: s === 'critical'
-                      ? 'rgba(239,68,68,0.3)'
+                      ? '#F5C2C7'
                       : s === 'low'
-                      ? 'rgba(245,158,11,0.3)'
-                      : 'var(--border)'
+                      ? '#F7E1B5'
+                      : '#E3DED6'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
                     <div style={{ marginTop: 2 }}>
                       {s === 'ok'
-                        ? <CheckCircle size={18} color="var(--success)" />
+                        ? <CheckCircle size={18} color="#1E7E34" />
                         : s === 'low'
-                        ? <AlertTriangle size={18} color="var(--warning)" />
-                        : <XCircle size={18} color="var(--danger)" />
+                        ? <AlertTriangle size={18} color="#854F0B" />
+                        : <XCircle size={18} color="#A32D2D" />
                       }
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{ing.name}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{ing.name}</div>
                       <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                         {formatZAR(ing.cost_per_unit)} / {unitLabel(ing.unit)}
                       </div>
                     </div>
                     <button
-                      className="btn btn-ghost btn-sm"
+                      className="btn btn-ghost btn-sm text-slate-500 hover:text-slate-900"
                       style={{ padding: '4px 6px' }}
                       onClick={() => isEditing ? closeEdit() : openEdit(ing)}
                     >

@@ -314,23 +314,27 @@ export default function IngredientsPage() {
             {ingredients.map((ing) => {
               const s = status(ing);
               return (
-                <div key={ing.id} className="card" style={{ padding: '12px 14px' }}>
+                <div key={ing.id} className="card" style={{ padding: '14px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                     <div style={{
-                      width: 38, height: 38, borderRadius: 10, flexShrink: 0,
-                      background: s === 'ok' ? 'var(--success-bg)' : s === 'low' ? 'var(--warning-bg)' : 'var(--danger-bg)',
+                      width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+                      background: s === 'ok' ? '#EAF5EC' : s === 'low' ? '#FAEEDA' : '#FBEAEB',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: s === 'ok' ? 'var(--success)' : s === 'low' ? 'var(--warning)' : 'var(--danger)',
+                      color: s === 'ok' ? '#1E7E34' : s === 'low' ? '#854F0B' : '#A32D2D',
                     }}>
-                      <ShoppingBasket size={17} />
+                      <ShoppingBasket size={20} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 15, fontWeight: 600 }}>{ing.name}</span>
-                        {s !== 'ok' && (
-                          <span className={`badge ${s === 'critical' ? 'badge-danger' : 'badge-warning'}`}>
-                            <AlertTriangle size={10} />
-                            {s === 'critical' ? 'Out of stock' : 'Low'}
+                        <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{ing.name}</span>
+                        {s === 'critical' && (
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 6, background: '#FBEAEB', border: '1px solid #F5C2C7', color: '#A32D2D' }}>
+                            Out of stock
+                          </span>
+                        )}
+                        {s === 'low' && (
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 6, background: '#FAEEDA', border: '1px solid #F7E1B5', color: '#854F0B' }}>
+                            Low stock
                           </span>
                         )}
                       </div>
@@ -338,17 +342,17 @@ export default function IngredientsPage() {
                         {formatZAR(ing.cost_per_unit)} / {unitLabel(ing.unit)}
                       </div>
                       <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
-                        Stock: <strong>{ing.current_stock}</strong> {unitLabel(ing.unit)}
+                        Stock: <strong style={{ color: 'var(--text-primary)' }}>{ing.current_stock}</strong> {unitLabel(ing.unit)}
                         {ing.low_stock_threshold > 0 && (
-                          <span style={{ color: 'var(--text-muted)' }}> · threshold {ing.low_stock_threshold}</span>
+                          <span style={{ color: 'var(--text-muted)' }}> · alert under {ing.low_stock_threshold}</span>
                         )}
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: 4 }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => openEdit(ing)} style={{ padding: '6px 8px' }}>
+                      <button className="btn btn-ghost btn-sm text-slate-500 hover:text-slate-900" onClick={() => openEdit(ing)} style={{ padding: '6px 8px' }}>
                         <Pencil size={15} />
                       </button>
-                      <button className="btn btn-danger btn-sm" onClick={() => setDeleteId(ing.id)} style={{ padding: '6px 8px' }}>
+                      <button className="btn btn-ghost btn-sm text-slate-400 hover:text-[#A32D2D]" onClick={() => setDeleteId(ing.id)} style={{ padding: '6px 8px' }}>
                         <Trash2 size={15} />
                       </button>
                     </div>
