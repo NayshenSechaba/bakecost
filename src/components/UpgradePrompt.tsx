@@ -26,7 +26,7 @@ export default function UpgradePrompt({ feature, isOpen, onClose }: UpgradePromp
           </div>
           <h2 className="mb-2 text-xl font-extrabold text-slate-900">Upgrade to Unlock</h2>
           <p className="mb-6 text-sm text-slate-600 leading-relaxed">
-            The <strong>{feature}</strong> feature is available exclusively on paid Doughnomics plans.
+            The <strong>{feature}</strong> feature is available exclusively on paid Doughnomic plans.
           </p>
           <div className="flex w-full flex-col gap-3 sm:flex-row">
             <Link

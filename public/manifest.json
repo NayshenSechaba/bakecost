@@ -1,7 +1,7 @@
 {
-  "name": "Doughnomics",
-  "short_name": "Doughnomics",
-  "description": "Bakery costing, batch scaling, and inventory for South African bakers",
+  "name": "Doughnomic",
+  "short_name": "Doughnomic",
+  "description": "know what every bake really costs — Bakery costing, scaling, and inventory",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#1a1612",

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -48,10 +49,16 @@ export default function SidebarNav() {
       {/* Brand Header */}
       <div className="sidebar-header">
         <div className="sidebar-brand">
-          <div className="sidebar-logo">🥐</div>
+          <Image
+            src="/logo-icon.png"
+            alt="Doughnomic"
+            width={38}
+            height={38}
+            className="rounded-xl shadow-xs shrink-0 object-contain"
+          />
           <div className="sidebar-brand-text">
-            <span className="sidebar-title">Doughnomics</span>
-            <span className="sidebar-subtitle">Bakery Command Centre</span>
+            <span className="sidebar-title">Doughnomic</span>
+            <span className="sidebar-subtitle">know what every bake costs</span>
           </div>
         </div>
       </div>

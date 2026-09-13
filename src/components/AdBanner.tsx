@@ -19,7 +19,7 @@ export function AdBanner() {
           Sponsored
         </span>
         <span className="text-xs text-slate-600 font-medium">
-          Doughnomics Free Plan
+          Doughnomic Free Plan
         </span>
       </div>
       <Link

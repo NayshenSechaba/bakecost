@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Check, X, Crown, Sparkles, ArrowLeft } from 'lucide-react';
 
 export default function PricingPage() {
@@ -13,16 +14,24 @@ export default function PricingPage() {
           className="inline-flex items-center text-slate-600 hover:text-slate-900 transition-colors mb-8 font-medium text-sm"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Doughnomics
+          Back to Doughnomic
         </Link>
 
         <div className="text-center mb-12">
-          <div className="text-3xl mb-3">🥐</div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">
+          <div className="flex justify-center mb-3">
+            <Image
+              src="/logo.png"
+              alt="Doughnomic"
+              width={220}
+              height={38}
+              className="h-10 w-auto object-contain"
+            />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">
             Choose Your Plan
           </h1>
-          <p className="text-slate-600 text-base max-w-lg mx-auto">
-            Start free with essential bakery costing, upgrade anytime to unlock unlimited capacity and team features.
+          <p className="text-slate-600 text-sm md:text-base max-w-lg mx-auto">
+            know what every bake really costs — start free, upgrade anytime to unlock unlimited recipes and team features.
           </p>
         </div>
 

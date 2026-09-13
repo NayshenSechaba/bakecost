@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Building2, Mail, Lock, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
 
 export default function SignupPage() {
@@ -43,14 +44,18 @@ export default function SignupPage() {
       <div className="max-w-md w-full bg-white p-8 sm:p-10 rounded-2xl shadow-sm border border-[#E3DED6]">
         {/* Logo & Header */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-2xl mx-auto mb-3 shadow-xs">
-            🥐
+          <div className="flex justify-center mb-2">
+            <Image
+              src="/logo.png"
+              alt="Doughnomic"
+              width={260}
+              height={44}
+              className="h-11 w-auto object-contain"
+              priority
+            />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Join Doughnomics
-          </h1>
-          <p className="text-sm text-slate-600 mt-1">
-            Start managing your bakery costs and profits for free
+          <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1 tracking-tight">
+            know what every bake really costs
           </p>
         </div>
 
