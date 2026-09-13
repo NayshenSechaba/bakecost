@@ -31,7 +31,7 @@ export default function BottomNav() {
         return (
           <Link key={href} href={href} className={`nav-item${active ? ' active' : ''}`}>
             <span className="nav-icon">
-              <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
+              <Icon size={20} strokeWidth={active ? 2.5 : 1.8} />
             </span>
             <span className="nav-label">{label}</span>
           </Link>
