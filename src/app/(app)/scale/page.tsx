@@ -7,9 +7,9 @@ import { Recipe } from '@/types';
 import {
   TrendingUp,
   BookOpen,
-  ChefHat,
   ArrowRight,
 } from 'lucide-react';
+import ProductTile from '@/components/ProductTile';
 
 export default function ScalePickerPage() {
   const supabase = createClient();
@@ -36,13 +36,15 @@ export default function ScalePickerPage() {
       </div>
 
       <div className="page-body">
-        <div className="card" style={{ padding: '16px', background: 'var(--accent-subtle)', borderColor: 'rgba(232,168,56,0.2)', marginBottom: 4 }}>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <TrendingUp size={18} color="var(--accent)" style={{ flexShrink: 0, marginTop: 1 }} />
+        <div className="card" style={{ padding: '16px', background: '#FFFFFF', borderColor: '#E3DED6', marginBottom: 12 }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <div className="w-9 h-9 rounded-xl bg-[#F4F1EC] text-[#C68A4C] flex items-center justify-center flex-shrink-0">
+              <TrendingUp size={20} />
+            </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Pick a recipe to scale</div>
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 3 }}>
-                Adjust the batch size to see live ingredient quantities, total cost, and suggested selling price.
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>Pick a recipe to scale</div>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Adjust batch sizes live to calculate real ingredient costs, overheads, margins, and recommended retail prices.
               </div>
             </div>
           </div>
@@ -65,16 +67,18 @@ export default function ScalePickerPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {recipes.map((recipe) => (
               <Link key={recipe.id} href={`/scale/${recipe.id}`} className="list-item">
-                <div className="list-item-icon">
-                  <ChefHat size={18} />
-                </div>
+                <ProductTile
+                  size="sm"
+                  photoPath={recipe.photo_path}
+                  name={recipe.name}
+                />
                 <div className="list-item-body">
                   <div className="list-item-title">{recipe.name}</div>
                   <div className="list-item-sub">
                     Base: {recipe.base_batch_size} units · {recipe.target_margin_pct}% margin
                   </div>
                 </div>
-                <ArrowRight size={16} color="var(--accent)" />
+                <ArrowRight size={16} className="text-slate-400 group-hover:text-slate-900 transition-colors" />
               </Link>
             ))}
           </div>

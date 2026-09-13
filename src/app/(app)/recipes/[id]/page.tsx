@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
 import { useAuth } from '@/components/AuthProvider';
+import ProductTile from '@/components/ProductTile';
+import CostBreakdownBar from '@/components/CostBreakdownBar';
 import Link from 'next/link';
 
 export default function RecipeBuilderPage() {
@@ -28,6 +30,7 @@ export default function RecipeBuilderPage() {
   const { bakeryId } = useAuth();
 
   const [recipeName, setRecipeName] = useState('');
+  const [photoPath, setPhotoPath] = useState<string | null>(null);
   const [baseBatchSize, setBaseBatchSize] = useState('12');
   const [targetMargin, setTargetMargin] = useState('60');
   const [laborTimeMins, setLaborTimeMins] = useState('0');
@@ -108,6 +111,7 @@ export default function RecipeBuilderPage() {
         
       if (recipe) {
         setRecipeName(recipe.name);
+        setPhotoPath(recipe.photo_path ?? null);
         setBaseBatchSize(String(recipe.base_batch_size));
         setTargetMargin(String(recipe.target_margin_pct));
         setLaborTimeMins(String(recipe.labor_time_mins ?? 0));
@@ -262,11 +266,35 @@ export default function RecipeBuilderPage() {
     <>
       <ToastContainer toasts={toasts} />
 
-      <div className="page-header">
-        <Link href="/recipes" className="btn btn-ghost btn-sm" style={{ padding: '6px 8px' }}>
-          <ArrowLeft size={18} />
-        </Link>
-        <h1 className="page-title">{isNew ? 'New Recipe' : 'Edit Recipe'}</h1>
+      {/* Detail Page Header Band */}
+      <div className="page-header-band">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <Link
+              href="/recipes"
+              className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition flex-shrink-0"
+            >
+              <ArrowLeft size={20} />
+            </Link>
+            <ProductTile
+              size="lg"
+              photoPath={photoPath}
+              name={recipeName || 'Recipe'}
+              recipeId={isNew ? undefined : (params.id as string)}
+              bakeryId={bakeryId ?? undefined}
+              editable={!isNew}
+              onPhotoUpdated={(newP) => setPhotoPath(newP)}
+            />
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-white truncate">
+                {recipeName || (isNew ? 'New Recipe' : 'Untitled Recipe')}
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+                {isNew ? 'Configure recipe & cost breakdown' : `Base batch: ${baseBatchSize} units · ${targetMargin}% target margin`}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="page-body">
@@ -550,9 +578,20 @@ export default function RecipeBuilderPage() {
 
             {/* Cost preview */}
             {recipeIngredients.length > 0 && (
-              <div className="card" style={{ background: 'var(--accent-subtle)', borderColor: 'rgba(232,168,56,0.2)' }}>
+              <div className="card">
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
                   Cost Preview (base batch)
+                </div>
+
+                {/* 4-Segment Cost Breakdown Bar */}
+                <div className="mb-4">
+                  <CostBreakdownBar
+                    ingredientsCost={baseIngredientCost}
+                    laborCost={baseLaborCost}
+                    overheadCost={baseElectricityCost + basePackagingCost + baseUtilityCost}
+                    sellingPrice={sellingPriceVal}
+                    showLegend={true}
+                  />
                 </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
@@ -600,7 +639,6 @@ export default function RecipeBuilderPage() {
                       Based on yield of {baseBatchSize} units
                     </div>
                   </div>
-                  <ChefHat size={32} color="var(--accent)" style={{ opacity: 0.4 }} />
                 </div>
 
                 {sellingPriceVal > 0 ? (
@@ -608,17 +646,17 @@ export default function RecipeBuilderPage() {
                     marginTop: 16,
                     padding: '12px 14px',
                     borderRadius: 'var(--radius-sm)',
-                    background: marginDiff >= 0 ? 'rgba(76, 175, 80, 0.08)' : 'rgba(244, 67, 54, 0.08)',
-                    border: `1px solid ${marginDiff >= 0 ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 67, 54, 0.15)'}`,
-                    color: marginDiff >= 0 ? '#81c784' : '#e57373',
+                    background: marginDiff >= 0 ? '#EAF5EC' : '#FBEAEB',
+                    border: `1px solid ${marginDiff >= 0 ? '#C3E6CB' : '#F5C2C7'}`,
+                    color: marginDiff >= 0 ? '#1E7E34' : '#A32D2D',
                     fontSize: 13,
                     lineHeight: 1.4
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, marginBottom: 4 }}>
-                      {marginDiff >= 0 ? '🎉 Highly Profitable Batch' : '⚠️ Under Target Margin'}
+                      {marginDiff >= 0 ? '🎉 Profitable Batch' : '⚠️ Under Target Margin'}
                     </div>
                     <div style={{ color: 'var(--text-secondary)' }}>
-                      Your actual profit margin is <strong style={{ color: marginDiff >= 0 ? '#81c784' : '#e57373' }}>{actualMarginPct.toFixed(1)}%</strong> (Target is {marginTarget}%).
+                      Your actual profit margin is <strong style={{ color: marginDiff >= 0 ? '#1E7E34' : '#A32D2D' }}>{actualMarginPct.toFixed(1)}%</strong> (Target is {marginTarget}%).
                     </div>
                     {marginDiff < 0 && (
                       <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-primary)' }}>
@@ -632,8 +670,8 @@ export default function RecipeBuilderPage() {
                     marginTop: 16,
                     padding: '12px 14px',
                     borderRadius: 'var(--radius-sm)',
-                    background: 'var(--bg-elevated)',
-                    border: '1px dashed var(--border-light)',
+                    background: '#F4F1EC',
+                    border: '1px dashed #E3DED6',
                     color: 'var(--text-muted)',
                     fontSize: 12,
                     lineHeight: 1.4

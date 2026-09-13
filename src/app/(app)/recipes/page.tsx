@@ -4,19 +4,17 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Recipe, Ingredient } from '@/types';
-import { formatZAR, calculateLaborCost, suggestedPrice } from '@/lib/utils';
 import {
   Plus,
   BookOpen,
-  ChefHat,
   Pencil,
   Trash2,
-  ArrowRight,
   TrendingUp,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
 import { useAuth } from '@/components/AuthProvider';
 import UpgradePrompt from '@/components/UpgradePrompt';
+import ProductTile from '@/components/ProductTile';
 import { useRouter } from 'next/navigation';
 
 export default function RecipesPage() {
@@ -29,7 +27,7 @@ export default function RecipesPage() {
   const [allIngredients, setAllIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
- 
+
   const load = useCallback(async () => {
     const [recipesRes, ingredientsRes] = await Promise.all([
       supabase
@@ -76,6 +74,9 @@ export default function RecipesPage() {
     }
 
     const actualMargin = ((sellingPrice - totalCost) / sellingPrice) * 100;
+    if (actualMargin < 0) {
+      return { status: 'loss', margin: actualMargin, targetMargin };
+    }
     return {
       status: actualMargin >= targetMargin ? 'profitable' : 'under_margin',
       margin: actualMargin,
@@ -144,30 +145,39 @@ export default function RecipesPage() {
             {recipes.map((recipe) => {
               const marginInfo = getRecipeMarginStatus(recipe);
               return (
-                <div key={recipe.id} className="card" style={{ padding: '14px 16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                    <div className="list-item-icon">
-                      <ChefHat size={18} />
-                    </div>
+                <div key={recipe.id} className="card flex flex-col justify-between" style={{ padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                    <ProductTile
+                      size="sm"
+                      photoPath={recipe.photo_path}
+                      name={recipe.name}
+                    />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{recipe.name}</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }} className="truncate">
+                        {recipe.name}
+                      </div>
                       <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 3 }}>
                         Base batch: {recipe.base_batch_size} units · {recipe.target_margin_pct}% target
                       </div>
                       
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                        {marginInfo.status === 'loss' && (
+                          <span style={{ fontSize: 11, background: '#FBEAEB', border: '1px solid #F5C2C7', color: '#A32D2D', padding: '2px 8px', borderRadius: 6, fontWeight: 600, display: 'inline-flex', alignItems: 'center' }}>
+                            ⚠️ Loss-making: {marginInfo.margin.toFixed(0)}%
+                          </span>
+                        )}
                         {marginInfo.status === 'under_margin' && (
-                          <span style={{ fontSize: 11, background: 'rgba(244, 67, 54, 0.08)', border: '1px solid rgba(244, 67, 54, 0.15)', color: '#e57373', padding: '2px 6px', borderRadius: 4, fontWeight: 600, display: 'inline-flex', alignItems: 'center' }}>
-                            ⚠️ Under margin: {marginInfo.margin.toFixed(0)}% (Target {marginInfo.targetMargin}%)
+                          <span style={{ fontSize: 11, background: '#FAEEDA', border: '1px solid #F7E1B5', color: '#854F0B', padding: '2px 8px', borderRadius: 6, fontWeight: 600, display: 'inline-flex', alignItems: 'center' }}>
+                            ⚠️ Under target: {marginInfo.margin.toFixed(0)}% (Target {marginInfo.targetMargin}%)
                           </span>
                         )}
                         {marginInfo.status === 'profitable' && (
-                          <span style={{ fontSize: 11, background: 'rgba(76, 175, 80, 0.08)', border: '1px solid rgba(76, 175, 80, 0.15)', color: '#81c784', padding: '2px 6px', borderRadius: 4, fontWeight: 600, display: 'inline-flex', alignItems: 'center' }}>
+                          <span style={{ fontSize: 11, background: '#EAF5EC', border: '1px solid #C3E6CB', color: '#1E7E34', padding: '2px 8px', borderRadius: 6, fontWeight: 600, display: 'inline-flex', alignItems: 'center' }}>
                             ✔ Profitable: {marginInfo.margin.toFixed(0)}%
                           </span>
                         )}
                         {marginInfo.status === 'no_price' && (
-                          <span style={{ fontSize: 11, background: 'var(--bg-elevated)', border: '1px dashed var(--border-light)', color: 'var(--text-muted)', padding: '2px 6px', borderRadius: 4, fontWeight: 500, display: 'inline-flex', alignItems: 'center' }}>
+                          <span style={{ fontSize: 11, background: '#F4F1EC', border: '1px dashed #E3DED6', color: '#6F6A63', padding: '2px 8px', borderRadius: 6, fontWeight: 500, display: 'inline-flex', alignItems: 'center' }}>
                             💡 No retail price set
                           </span>
                         )}
@@ -175,32 +185,32 @@ export default function RecipesPage() {
                     </div>
                   </div>
 
-                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                  <Link
-                    href={`/scale/${recipe.id}`}
-                    className="btn btn-primary btn-sm"
-                    style={{ flex: 1 }}
-                  >
-                    <TrendingUp size={14} /> Scale & Cost
-                  </Link>
-                  <Link
-                    href={`/recipes/${recipe.id}`}
-                    className="btn btn-secondary btn-sm"
-                    style={{ padding: '8px 12px' }}
-                  >
-                    <Pencil size={14} />
-                  </Link>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    style={{ padding: '8px 12px' }}
-                    onClick={() => setDeleteId(recipe.id)}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                    <Link
+                      href={`/scale/${recipe.id}`}
+                      className="btn btn-primary btn-sm"
+                      style={{ flex: 1 }}
+                    >
+                      <TrendingUp size={14} /> Scale & Cost
+                    </Link>
+                    <Link
+                      href={`/recipes/${recipe.id}`}
+                      className="btn btn-secondary btn-sm"
+                      style={{ padding: '8px 12px' }}
+                    >
+                      <Pencil size={14} />
+                    </Link>
+                    <button
+                      className="btn btn-ghost btn-sm text-slate-400 hover:text-danger"
+                      style={{ padding: '8px 12px' }}
+                      onClick={() => setDeleteId(recipe.id)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
           </div>
         )}
       </div>
@@ -233,7 +243,7 @@ export default function RecipesPage() {
             <div className="modal-handle" />
             <div style={{ textAlign: 'center', padding: '8px 0' }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>🗑️</div>
-              <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Delete recipe?</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: 'var(--text-primary)' }}>Delete recipe?</h2>
               <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>
                 All recipe ingredients will also be deleted. Production logs will be kept.
               </p>

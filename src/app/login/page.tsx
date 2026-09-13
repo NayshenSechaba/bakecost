@@ -78,7 +78,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-[var(--accent)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="w-full bg-[#26221F] hover:bg-[#38332E] text-white font-bold py-3 px-4 rounded-xl transition-all shadow-sm disabled:opacity-50"
           >
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
@@ -86,12 +86,12 @@ export default function LoginPage() {
 
         <div className="mt-6 text-center space-y-2">
           <div>
-            <Link href="/signup" className="text-[var(--accent-dim)] hover:text-[var(--accent)] text-sm">
+            <Link href="/signup" className="text-[#C68A4C] hover:underline text-sm font-medium">
               Don't have an account? Sign Up
             </Link>
           </div>
           <div>
-            <Link href="/pricing" className="text-[var(--accent-dim)] hover:text-[var(--accent)] text-sm">
+            <Link href="/pricing" className="text-slate-500 hover:text-slate-800 text-sm">
               View Pricing
             </Link>
           </div>

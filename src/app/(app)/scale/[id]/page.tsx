@@ -27,6 +27,8 @@ import {
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
 import { useAuth } from '@/components/AuthProvider';
+import ProductTile from '@/components/ProductTile';
+import CostBreakdownBar from '@/components/CostBreakdownBar';
 type RI = RecipeIngredient & { ingredient: Ingredient };
 
 export default function ScaleDetailPage() {
@@ -222,15 +224,30 @@ export default function ScaleDetailPage() {
     <>
       <ToastContainer toasts={toasts} />
 
-      {/* Header */}
-      <div className="page-header">
-        <Link href="/scale" className="btn btn-ghost btn-sm" style={{ padding: '6px 8px' }}>
-          <ArrowLeft size={18} />
-        </Link>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 className="page-title" style={{ fontSize: 17, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {recipe.name}
-          </h1>
+      {/* Detail Page Header Band */}
+      <div className="page-header-band">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <Link
+              href="/scale"
+              className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition flex-shrink-0"
+            >
+              <ArrowLeft size={20} />
+            </Link>
+            <ProductTile
+              size="lg"
+              photoPath={recipe.photo_path}
+              name={recipe.name}
+            />
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-white truncate">
+                {recipe.name}
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+                Base: {recipe.base_batch_size} units · {recipe.target_margin_pct}% target margin
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -366,9 +383,21 @@ export default function ScaleDetailPage() {
 
             {/* Cost & Labor Breakdown Details */}
             <div className="card">
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
                 Cost Breakdown
               </div>
+
+              {/* 4-Segment Cost Breakdown Bar */}
+              <div className="mb-4">
+                <CostBreakdownBar
+                  ingredientsCost={ingredientCost}
+                  laborCost={scaledLaborCost}
+                  overheadCost={scaledElectricityCost + scaledPackagingCost + scaledUtilityCost}
+                  sellingPrice={price * batchSize}
+                  showLegend={true}
+                />
+              </div>
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div className="flex-between">
                   <span className="text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

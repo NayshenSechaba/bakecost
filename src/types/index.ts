@@ -28,6 +28,7 @@ export interface Recipe {
   id: string;
   bakery_id?: string;
   name: string;
+  photo_path?: string | null;
   base_batch_size: number;
   target_margin_pct: number;
   labor_time_mins: number;
@@ -63,6 +64,7 @@ export interface RecipeCost {
   recipe_id: string;
   bakery_id?: string;
   recipe_name: string;
+  photo_path?: string | null;
   base_batch_size: number;
   target_margin_pct: number;
   labor_time_mins: number;

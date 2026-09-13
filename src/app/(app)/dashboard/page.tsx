@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client';
 import { formatZAR } from '@/lib/utils';
 import { Recipe, Ingredient, ProductionLog } from '@/types';
 import {
-  ChefHat,
   AlertTriangle,
   Plus,
   ArrowRight,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
 import { AdBanner } from '@/components/AdBanner';
+import ProductTile from '@/components/ProductTile';
 
 export default function DashboardPage() {
   const supabase = createClient();
@@ -101,27 +101,23 @@ export default function DashboardPage() {
       <ToastContainer toasts={toasts} />
 
       {/* Header */}
-      <div style={{ padding: '24px 20px 20px', background: 'linear-gradient(180deg, #2a1f0e 0%, var(--bg-surface) 100%)', borderRadius: '0 0 var(--radius-lg) var(--radius-lg)' }} className="mb-2">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: 12,
-              background: 'linear-gradient(135deg, var(--accent), var(--accent-dim))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22
-            }}>🥐</div>
-            <div>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>{today}</div>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' }}>Bakery Dashboard</h1>
-            </div>
+      <div className="page-header">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xl shadow-sm">
+            🥐
           </div>
-          <div className="hidden md:flex items-center gap-3">
-            <Link href="/scale" className="btn btn-secondary btn-sm">
-              <TrendingUp size={16} color="var(--accent)" /> Scale Recipe
-            </Link>
-            <Link href="/recipes/new" className="btn btn-primary btn-sm">
-              <Plus size={16} /> New Recipe
-            </Link>
+          <div>
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{today}</div>
+            <h1 className="page-title text-2xl font-extrabold text-slate-900">Bakery Dashboard</h1>
           </div>
+        </div>
+        <div className="hidden md:flex items-center gap-3">
+          <Link href="/scale" className="btn btn-secondary btn-sm">
+            <TrendingUp size={16} className="text-[#C68A4C]" /> Scale Recipe
+          </Link>
+          <Link href="/recipes/new" className="btn btn-primary btn-sm">
+            <Plus size={16} /> New Recipe
+          </Link>
         </div>
       </div>
 
@@ -156,39 +152,45 @@ export default function DashboardPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <Link href="/scale" style={{
                   display: 'flex', alignItems: 'center', gap: 12,
-                  background: 'var(--accent-subtle)', border: '1px solid rgba(232,168,56,0.2)',
-                  borderRadius: 'var(--radius-sm)', padding: '12px 14px', textDecoration: 'none',
+                  background: '#FFFFFF', border: '1px solid #E3DED6',
+                  borderRadius: '12px', padding: '12px 14px', textDecoration: 'none',
                   transition: 'all 0.2s'
                 }}>
-                  <TrendingUp size={20} color="var(--accent)" />
-                  <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+                  <div className="w-8 h-8 rounded-lg bg-sand-100 flex items-center justify-center text-[#C68A4C]">
+                    <TrendingUp size={18} />
+                  </div>
+                  <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
                     Scale a Recipe
                   </span>
-                  <ArrowRight size={16} color="var(--accent)" />
+                  <ArrowRight size={16} className="text-slate-400" />
                 </Link>
                 <Link href="/recipes/new" style={{
                   display: 'flex', alignItems: 'center', gap: 12,
-                  background: 'var(--bg-elevated)', border: '1px solid var(--border-light)',
-                  borderRadius: 'var(--radius-sm)', padding: '12px 14px', textDecoration: 'none',
+                  background: '#FFFFFF', border: '1px solid #E3DED6',
+                  borderRadius: '12px', padding: '12px 14px', textDecoration: 'none',
                   transition: 'all 0.2s'
                 }}>
-                  <BookOpen size={20} color="var(--text-secondary)" />
-                  <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+                  <div className="w-8 h-8 rounded-lg bg-sand-100 flex items-center justify-center text-slate-700">
+                    <BookOpen size={18} />
+                  </div>
+                  <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
                     New Recipe
                   </span>
-                  <ArrowRight size={16} color="var(--text-muted)" />
+                  <ArrowRight size={16} className="text-slate-400" />
                 </Link>
                 <Link href="/ingredients" style={{
                   display: 'flex', alignItems: 'center', gap: 12,
-                  background: 'var(--bg-elevated)', border: '1px solid var(--border-light)',
-                  borderRadius: 'var(--radius-sm)', padding: '12px 14px', textDecoration: 'none',
+                  background: '#FFFFFF', border: '1px solid #E3DED6',
+                  borderRadius: '12px', padding: '12px 14px', textDecoration: 'none',
                   transition: 'all 0.2s'
                 }}>
-                  <Package size={20} color="var(--text-secondary)" />
-                  <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+                  <div className="w-8 h-8 rounded-lg bg-sand-100 flex items-center justify-center text-slate-700">
+                    <Package size={18} />
+                  </div>
+                  <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
                     Add Ingredient
                   </span>
-                  <ArrowRight size={16} color="var(--text-muted)" />
+                  <ArrowRight size={16} className="text-slate-400" />
                 </Link>
               </div>
             </div>
@@ -203,14 +205,16 @@ export default function DashboardPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {recipes.slice(0, 3).map((recipe) => (
                     <Link key={recipe.id} href={`/scale/${recipe.id}`} className="list-item">
-                      <div className="list-item-icon">
-                        <ChefHat size={18} />
-                      </div>
+                      <ProductTile
+                        size="sm"
+                        photoPath={recipe.photo_path}
+                        name={recipe.name}
+                      />
                       <div className="list-item-body">
                         <div className="list-item-title">{recipe.name}</div>
                         <div className="list-item-sub">Base: {recipe.base_batch_size} units · {recipe.target_margin_pct}% margin</div>
                       </div>
-                      <TrendingUp size={16} color="var(--text-muted)" />
+                      <TrendingUp size={16} className="text-slate-400" />
                     </Link>
                   ))}
                 </div>
@@ -223,8 +227,8 @@ export default function DashboardPage() {
             {lowStock.length > 0 && (
               <div className="card" style={{ borderColor: 'rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.04)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                  <AlertTriangle size={16} color="var(--warning)" />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--warning)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <AlertTriangle size={16} className="text-[#854F0B]" />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#854F0B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     Low Stock Alerts
                   </span>
                 </div>
@@ -252,10 +256,10 @@ export default function DashboardPage() {
 
             {/* Profit Margin Warnings */}
             {!loading && underMarginRecipes.length > 0 && (
-              <div className="card" style={{ borderColor: 'rgba(244,67,54,0.2)', background: 'rgba(244,67,54,0.04)' }}>
+              <div className="card" style={{ borderColor: '#F5C2C7', background: '#FDF7F7' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                  <AlertTriangle size={16} color="#e57373" />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#e57373', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <AlertTriangle size={16} className="text-[#A32D2D]" />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#A32D2D', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     Profit Margin Warnings
                   </span>
                 </div>
@@ -275,6 +279,7 @@ export default function DashboardPage() {
                     const basePackagingCost = pkgIng ? (pkgIng.cost_per_unit * (recipe.base_batch_size ?? 0)) : 0;
                     const totalCost = baseIngredientCost + baseLaborCost + baseElecCost + basePackagingCost + baseUtilityCost;
                     const actualMargin = ((recipe.selling_price - totalCost) / recipe.selling_price) * 100;
+                    const isLoss = actualMargin < 0;
 
                     return (
                       <div key={recipe.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
@@ -286,7 +291,15 @@ export default function DashboardPage() {
                             Selling: {formatZAR(recipe.selling_price)} · Cost: {formatZAR(totalCost)}
                           </div>
                         </div>
-                        <span className="badge badge-danger" style={{ fontSize: 11, background: 'rgba(244, 67, 54, 0.15)', color: '#e57373' }}>
+                        <span style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          padding: '2px 8px',
+                          borderRadius: 6,
+                          background: isLoss ? '#FBEAEB' : '#FAEEDA',
+                          border: `1px solid ${isLoss ? '#F5C2C7' : '#F7E1B5'}`,
+                          color: isLoss ? '#A32D2D' : '#854F0B'
+                        }}>
                           {actualMargin.toFixed(0)}% margin
                         </span>
                       </div>

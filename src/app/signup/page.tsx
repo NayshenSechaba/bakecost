@@ -105,14 +105,14 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={isLoading || success}
-            className="w-full bg-[var(--accent)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="w-full bg-[#26221F] hover:bg-[#38332E] text-white font-bold py-3 px-4 rounded-xl transition-all shadow-sm disabled:opacity-50"
           >
             {isLoading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <Link href="/login" className="text-[var(--accent-dim)] hover:text-[var(--accent)] text-sm">
+          <Link href="/login" className="text-[#C68A4C] hover:underline text-sm font-medium">
             Already have an account? Sign In
           </Link>
         </div>
