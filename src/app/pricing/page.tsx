@@ -7,14 +7,14 @@ import { Check, X, Crown, Sparkles, ArrowLeft } from 'lucide-react';
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-[#F4F1EC] text-slate-900 p-6 font-sans">
+    <div className="min-h-screen bg-[#F4F1EC] text-slate-900 p-4 sm:p-6 font-sans">
       <div className="max-w-6xl mx-auto">
         <Link
           href="/login"
-          className="inline-flex items-center text-slate-600 hover:text-slate-900 transition-colors mb-8 font-medium text-sm"
+          className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors mb-8 font-semibold text-sm"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Doughnomic
+          <ArrowLeft size={16} className="shrink-0" />
+          <span>Back to Doughnomic</span>
         </Link>
 
         <div className="text-center mb-12">
@@ -37,7 +37,7 @@ export default function PricingPage() {
 
         <div className="grid md:grid-cols-3 gap-6 items-stretch">
           {/* Free Plan */}
-          <div className="bg-white rounded-2xl p-7 border border-[#E3DED6] shadow-sm flex flex-col justify-between">
+          <div className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E3DED6] shadow-sm flex flex-col justify-between">
             <div>
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Starter</div>
               <h3 className="text-2xl font-extrabold text-slate-900 mb-2">Free</h3>
@@ -51,19 +51,45 @@ export default function PricingPage() {
                 Get Started Free
               </Link>
               <ul className="space-y-3.5 text-sm text-slate-700">
-                <li className="flex items-center"><Check className="w-4 h-4 text-[#C68A4C] mr-2.5 flex-shrink-0" /> Up to 3 recipes</li>
-                <li className="flex items-center"><Check className="w-4 h-4 text-[#C68A4C] mr-2.5 flex-shrink-0" /> Up to 10 ingredients</li>
-                <li className="flex items-center text-slate-400"><X className="w-4 h-4 mr-2.5 flex-shrink-0" /> Ads shown</li>
-                <li className="flex items-center text-slate-400"><X className="w-4 h-4 mr-2.5 flex-shrink-0" /> No report exports</li>
-                <li className="flex items-center text-slate-400"><X className="w-4 h-4 mr-2.5 flex-shrink-0" /> No team invites</li>
+                <li className="flex items-start gap-3">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-[#C68A4C]">
+                    <Check size={16} strokeWidth={2.5} />
+                  </div>
+                  <span className="leading-tight">Up to 3 recipes</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-[#C68A4C]">
+                    <Check size={16} strokeWidth={2.5} />
+                  </div>
+                  <span className="leading-tight">Up to 10 ingredients</span>
+                </li>
+                <li className="flex items-start gap-3 text-slate-400">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-slate-400">
+                    <X size={16} strokeWidth={2} />
+                  </div>
+                  <span className="leading-tight">Ads shown</span>
+                </li>
+                <li className="flex items-start gap-3 text-slate-400">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-slate-400">
+                    <X size={16} strokeWidth={2} />
+                  </div>
+                  <span className="leading-tight">No report exports</span>
+                </li>
+                <li className="flex items-start gap-3 text-slate-400">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-slate-400">
+                    <X size={16} strokeWidth={2} />
+                  </div>
+                  <span className="leading-tight">No team invites</span>
+                </li>
               </ul>
             </div>
           </div>
 
           {/* Monthly Plan */}
-          <div className="bg-white rounded-2xl p-7 border-2 border-slate-900 shadow-md relative flex flex-col justify-between transform md:-translate-y-2">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-3.5 py-1 rounded-full text-xs font-bold flex items-center shadow-sm whitespace-nowrap">
-              <Sparkles className="w-3.5 h-3.5 mr-1 text-[#C68A4C]" /> Most Popular
+          <div className="bg-white rounded-2xl p-6 sm:p-7 border-2 border-slate-900 shadow-md relative flex flex-col justify-between transform md:-translate-y-2">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-3.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+              <Sparkles size={13} className="text-[#C68A4C] shrink-0" />
+              <span>Most Popular</span>
             </div>
             <div>
               <div className="text-xs font-bold text-[#C68A4C] uppercase tracking-wider mb-1">Individual Monthly</div>
@@ -78,17 +104,42 @@ export default function PricingPage() {
                 Start Monthly Plan
               </Link>
               <ul className="space-y-3.5 text-sm text-slate-700">
-                <li className="flex items-center font-medium"><Check className="w-4 h-4 text-[#C68A4C] mr-2.5 flex-shrink-0" /> Unlimited recipes</li>
-                <li className="flex items-center font-medium"><Check className="w-4 h-4 text-[#C68A4C] mr-2.5 flex-shrink-0" /> Unlimited ingredients</li>
-                <li className="flex items-center font-medium"><Check className="w-4 h-4 text-[#C68A4C] mr-2.5 flex-shrink-0" /> No ads</li>
-                <li className="flex items-center font-medium"><Check className="w-4 h-4 text-[#C68A4C] mr-2.5 flex-shrink-0" /> Export CSV reports</li>
-                <li className="flex items-center font-medium"><Check className="w-4 h-4 text-[#C68A4C] mr-2.5 flex-shrink-0" /> Team member invites</li>
+                <li className="flex items-start gap-3 font-medium">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-[#C68A4C]">
+                    <Check size={16} strokeWidth={2.5} />
+                  </div>
+                  <span className="leading-tight">Unlimited recipes</span>
+                </li>
+                <li className="flex items-start gap-3 font-medium">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-[#C68A4C]">
+                    <Check size={16} strokeWidth={2.5} />
+                  </div>
+                  <span className="leading-tight">Unlimited ingredients</span>
+                </li>
+                <li className="flex items-start gap-3 font-medium">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-[#C68A4C]">
+                    <Check size={16} strokeWidth={2.5} />
+                  </div>
+                  <span className="leading-tight">No ads</span>
+                </li>
+                <li className="flex items-start gap-3 font-medium">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-[#C68A4C]">
+                    <Check size={16} strokeWidth={2.5} />
+                  </div>
+                  <span className="leading-tight">Export CSV reports</span>
+                </li>
+                <li className="flex items-start gap-3 font-medium">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-[#C68A4C]">
+                    <Check size={16} strokeWidth={2.5} />
+                  </div>
+                  <span className="leading-tight">Team member invites</span>
+                </li>
               </ul>
             </div>
           </div>
 
           {/* Annual Plan */}
-          <div className="bg-white rounded-2xl p-7 border border-[#E3DED6] shadow-sm relative flex flex-col justify-between">
+          <div className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E3DED6] shadow-sm relative flex flex-col justify-between">
             <div className="absolute top-4 right-4 bg-[#FAEEDA] text-[#854F0B] border border-[#F7E1B5] px-2.5 py-0.5 rounded-full text-xs font-bold">
               Save R182
             </div>
@@ -105,9 +156,24 @@ export default function PricingPage() {
                 Start Annual Plan
               </Link>
               <ul className="space-y-3.5 text-sm text-slate-700">
-                <li className="flex items-center font-medium"><Check className="w-4 h-4 text-[#C68A4C] mr-2.5 flex-shrink-0" /> Everything in Monthly</li>
-                <li className="flex items-center font-medium"><Crown className="w-4 h-4 text-[#C68A4C] mr-2.5 flex-shrink-0" /> 2 months free annually</li>
-                <li className="flex items-center font-medium"><Check className="w-4 h-4 text-[#C68A4C] mr-2.5 flex-shrink-0" /> Priority feature access</li>
+                <li className="flex items-start gap-3 font-medium">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-[#C68A4C]">
+                    <Check size={16} strokeWidth={2.5} />
+                  </div>
+                  <span className="leading-tight">Everything in Monthly</span>
+                </li>
+                <li className="flex items-start gap-3 font-medium">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-[#C68A4C]">
+                    <Crown size={16} strokeWidth={2.2} />
+                  </div>
+                  <span className="leading-tight">2 months free annually</span>
+                </li>
+                <li className="flex items-start gap-3 font-medium">
+                  <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center text-[#C68A4C]">
+                    <Check size={16} strokeWidth={2.5} />
+                  </div>
+                  <span className="leading-tight">Priority feature access</span>
+                </li>
               </ul>
             </div>
           </div>
