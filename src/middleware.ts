@@ -36,15 +36,17 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const publicRoutes = ['/login', '/signup', '/auth/callback', '/pricing', '/']
-  const isPublicRoute = publicRoutes.some(
-    (route) => request.nextUrl.pathname === route || request.nextUrl.pathname.startsWith('/auth/callback')
+  const pathname = request.nextUrl.pathname
+  const isStaticFile = /\.(?:svg|png|jpg|jpeg|gif|webp|ico|json|txt|woff2?)$/i.test(pathname)
+  const isPublicRoute = isStaticFile || publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith('/auth/callback')
   )
 
   if (!user && !isPublicRoute) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
+  if (user && (pathname === '/login' || pathname === '/signup')) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -52,5 +54,14 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon-.*\\.png|manifest.json).*)'],
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico, manifest.json
+     * - All static file extensions (svg, png, jpg, jpeg, gif, webp, ico)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|json)$).*)',
+  ],
 }
