@@ -34,21 +34,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F4F1EC] p-4 sm:p-6 font-sans">
-      <div className="max-w-md w-full bg-white p-8 sm:p-10 rounded-2xl shadow-sm border border-[#E3DED6]">
+    <div className="min-h-screen flex items-center justify-center bg-[#F4F1EC] p-4 sm:p-6 lg:p-8 font-sans">
+      <div className="max-w-lg w-full bg-white p-8 sm:p-11 rounded-3xl shadow-md border-2 border-[#D8D2C9]">
         {/* Logo & Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-2">
+        <div className="text-center mb-9 flex flex-col items-center">
+          <div className="flex justify-center mb-3">
             <Image
               src="/logo.png"
               alt="Doughnomic"
-              width={260}
-              height={44}
-              className="h-11 w-auto object-contain"
+              width={320}
+              height={52}
+              className="h-14 sm:h-16 w-auto object-contain"
               priority
             />
           </div>
-          <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1 tracking-tight">
+          <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#C68A4C] mt-1">
             know what every bake really costs
           </p>
         </div>
