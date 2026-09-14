@@ -58,9 +58,9 @@ export default function LoginPage() {
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5" htmlFor="email">
               Email Address
             </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Mail size={16} />
+            <div className="auth-input-wrapper">
+              <div className="auth-input-icon">
+                <Mail size={17} />
               </div>
               <input
                 id="email"
@@ -68,7 +68,7 @@ export default function LoginPage() {
                 placeholder="baker@example.co.za"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-sand-50 border border-[#E3DED6] rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:bg-white text-sm font-medium transition-all"
+                className="auth-input-field"
                 required
               />
             </div>
@@ -80,9 +80,9 @@ export default function LoginPage() {
                 Password
               </label>
             </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Lock size={16} />
+            <div className="auth-input-wrapper">
+              <div className="auth-input-icon">
+                <Lock size={17} />
               </div>
               <input
                 id="password"
@@ -90,7 +90,7 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-sand-50 border border-[#E3DED6] rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:bg-white text-sm font-medium transition-all"
+                className="auth-input-field"
                 required
               />
             </div>
