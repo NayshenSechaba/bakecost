@@ -7,10 +7,11 @@ import { Check, X, Crown, Sparkles, ArrowLeft } from 'lucide-react';
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-[#F4F1EC] text-slate-900 py-10 px-4 sm:px-6 lg:px-8 font-sans flex flex-col items-center justify-center">
-      <div className="w-full max-w-6xl mx-auto flex flex-col items-center">
+    <div className="min-h-screen bg-[#F4F1EC] text-slate-900 py-12 px-4 sm:px-6 lg:px-8 font-sans flex flex-col items-center">
+      <div className="w-full max-w-5xl mx-auto flex flex-col items-center">
+        
         {/* Top Back Navigation */}
-        <div className="w-full flex justify-center mb-6">
+        <div className="w-full flex justify-start sm:justify-center mb-8">
           <Link
             href="/login"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#D8D2C9] text-slate-700 hover:text-slate-900 hover:border-slate-900 transition-all font-semibold text-xs sm:text-sm shadow-xs"
@@ -38,14 +39,15 @@ export default function PricingPage() {
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-3 tracking-tight">
             Choose Your Plan
           </h1>
-          <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-medium">
+          <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-medium max-w-xl mx-auto">
             Start free with essential bakery costing tools. Upgrade anytime to unlock unlimited recipes, exportable analytics, and team collaboration.
           </p>
         </div>
 
         {/* Pricing Cards Grid */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {/* Free Plan */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch mb-16">
+          
+          {/* 1. Free Plan */}
           <div className="bg-white rounded-3xl p-7 sm:p-8 border-2 border-[#D8D2C9] shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
             <div>
               <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">
@@ -55,12 +57,14 @@ export default function PricingPage() {
               <div className="text-4xl font-black text-slate-900 mb-6">
                 R0<span className="text-sm text-slate-500 font-semibold"> / forever</span>
               </div>
+              
               <Link
                 href="/signup"
                 className="block w-full py-3.5 px-4 bg-sand-50 hover:bg-sand-100 text-slate-900 text-center rounded-2xl font-bold transition-all mb-7 border-2 border-[#D8D2C9] shadow-xs active:scale-[0.99]"
               >
                 Get Started Free
               </Link>
+              
               <ul className="space-y-4 text-sm text-slate-800">
                 <li className="flex items-start gap-3">
                   <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center rounded-full bg-[#FAEEDA] text-[#854F0B]">
@@ -96,12 +100,14 @@ export default function PricingPage() {
             </div>
           </div>
 
-          {/* Monthly Plan (Featured) */}
-          <div className="bg-white rounded-3xl p-7 sm:p-8 border-[2.5px] border-slate-900 shadow-xl relative flex flex-col justify-between md:-translate-y-3">
+          {/* 2. Monthly Plan (Featured) */}
+          <div className="bg-white rounded-3xl p-7 sm:p-8 pt-9 sm:pt-10 border-[2.5px] border-slate-900 shadow-xl relative flex flex-col justify-between">
+            {/* Floating Most Popular Pill */}
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 shadow-md whitespace-nowrap uppercase tracking-wider">
               <Sparkles size={13} className="text-[#C68A4C] shrink-0" />
               <span>Most Popular</span>
             </div>
+            
             <div>
               <div className="text-xs font-extrabold text-[#C68A4C] uppercase tracking-widest mb-1.5">
                 Individual Monthly
@@ -110,6 +116,7 @@ export default function PricingPage() {
               <div className="text-4xl font-black text-slate-900 mb-6">
                 R91<span className="text-sm text-slate-500 font-semibold"> / month</span>
               </div>
+              
               <a
                 href="https://paystack.shop/pay/mz6y9d-cjw"
                 target="_blank"
@@ -118,6 +125,7 @@ export default function PricingPage() {
               >
                 Subscribe Monthly (R91/mo) →
               </a>
+              
               <ul className="space-y-4 text-sm text-slate-800">
                 <li className="flex items-start gap-3 font-semibold">
                   <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center rounded-full bg-slate-900 text-white">
@@ -153,19 +161,22 @@ export default function PricingPage() {
             </div>
           </div>
 
-          {/* Annual Plan */}
+          {/* 3. Annual Plan */}
           <div className="bg-white rounded-3xl p-7 sm:p-8 border-2 border-[#D8D2C9] shadow-sm hover:shadow-md transition-all relative flex flex-col justify-between">
-            <div className="absolute top-5 right-5 bg-[#FAEEDA] text-[#854F0B] border border-[#F7E1B5] px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide">
+            {/* Top Right Save Pill */}
+            <div className="absolute top-6 right-6 bg-[#FAEEDA] text-[#854F0B] border border-[#F7E1B5] px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide">
               Save R182
             </div>
+            
             <div>
-              <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">
+              <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-1.5 pr-24">
                 Individual Annual
               </div>
               <h3 className="text-2xl font-black text-slate-900 mb-2">Annual</h3>
               <div className="text-4xl font-black text-slate-900 mb-6">
                 R910<span className="text-sm text-slate-500 font-semibold"> / year</span>
               </div>
+              
               <a
                 href="https://paystack.shop/pay/l0yv1qgt3y"
                 target="_blank"
@@ -174,6 +185,7 @@ export default function PricingPage() {
               >
                 Subscribe Annual (R910/yr) →
               </a>
+              
               <ul className="space-y-4 text-sm text-slate-800">
                 <li className="flex items-start gap-3 font-semibold">
                   <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center rounded-full bg-[#FAEEDA] text-[#854F0B]">
@@ -196,6 +208,7 @@ export default function PricingPage() {
               </ul>
             </div>
           </div>
+
         </div>
       </div>
     </div>
