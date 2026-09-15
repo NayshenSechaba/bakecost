@@ -126,20 +126,43 @@ export default function SettingsPage() {
                 <CreditCard className="w-5 h-5 mr-2 text-[#C68A4C]" />
                 Subscription
               </h2>
-              <div className="flex items-center justify-between bg-sand-50 border border-[#E3DED6] p-4 rounded-xl">
-                <div>
-                  <span className="block text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Current Plan</span>
-                  <span className={`inline-block px-3 py-0.5 rounded-full text-xs font-bold ${
-                    currentPlan === 'Free' ? 'bg-sand-200 text-slate-700' :
-                    currentPlan === 'Monthly' ? 'bg-[#C68A4C] text-white' :
-                    'bg-[#FAEEDA] text-[#854F0B] border border-[#F7E1B5]'
-                  }`}>
-                    {currentPlan}
-                  </span>
+              <div className="bg-sand-50 border border-[#E3DED6] p-4 rounded-2xl mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <span className="block text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Current Plan</span>
+                    <span className={`inline-block px-3 py-0.5 rounded-full text-xs font-bold ${
+                      currentPlan === 'Free' ? 'bg-sand-200 text-slate-700' :
+                      currentPlan === 'Monthly' ? 'bg-[#C68A4C] text-white' :
+                      'bg-[#FAEEDA] text-[#854F0B] border border-[#F7E1B5]'
+                    }`}>
+                      {currentPlan}
+                    </span>
+                  </div>
+                  <Link href="/pricing" className="btn btn-secondary btn-sm">
+                    View All Plans
+                  </Link>
                 </div>
-                <Link href="/pricing" className="btn btn-primary btn-sm">
-                  Upgrade
-                </Link>
+
+                {currentPlan === 'Free' && (
+                  <div className="pt-3 border-t border-[#E3DED6] flex flex-col sm:flex-row gap-2">
+                    <a
+                      href="https://paystack.shop/pay/mz6y9d-cjw"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary btn-sm flex-1 text-center"
+                    >
+                      Upgrade Monthly (R91/mo)
+                    </a>
+                    <a
+                      href="https://paystack.shop/pay/l0yv1qgt3y"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary btn-sm flex-1 text-center"
+                    >
+                      Upgrade Annual (R910/yr)
+                    </a>
+                  </div>
+                )}
               </div>
             </section>
 

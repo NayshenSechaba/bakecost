@@ -29,22 +29,57 @@ export async function POST(request: NextRequest) {
 
     switch (event.event) {
       case 'charge.success': {
-        const { metadata, customer } = event.data;
-        const plan = metadata?.plan as 'monthly' | 'annual';
-        const userId = metadata?.user_id;
+        const { metadata, customer, amount } = event.data;
+        const customerEmail = customer?.email?.toLowerCase();
+        let plan: 'monthly' | 'annual' = metadata?.plan;
 
-        if (!userId || !plan) break;
+        // Auto-detect plan from amount or metadata if not explicitly provided
+        if (!plan) {
+          if (amount >= 50000) {
+            plan = 'annual'; // R910.00 (91000 cents)
+          } else {
+            plan = 'monthly'; // R91.00 (9100 cents)
+          }
+        }
 
-        // Get the user's bakery_id from their profile
-        const { data: profile } = await supabaseAdmin
-          .from('profiles')
-          .select('bakery_id')
-          .eq('id', userId)
-          .single();
+        let userId = metadata?.user_id;
+        let bakeryId = metadata?.bakery_id;
 
-        if (!profile) break;
+        // If no user_id in metadata, look up user by customer email
+        if (!userId && customerEmail) {
+          try {
+            const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+            const matchedUser = usersData?.users?.find(
+              (u) => u.email?.toLowerCase() === customerEmail
+            );
+            if (matchedUser) {
+              userId = matchedUser.id;
+            }
+          } catch (e) {
+            console.error('Error finding user by email in webhook:', e);
+          }
+        }
 
-        // Calculate period end
+        // If we have userId but not bakeryId, resolve from profiles table
+        if (userId && !bakeryId) {
+          const { data: profile } = await supabaseAdmin
+            .from('profiles')
+            .select('bakery_id')
+            .eq('id', userId)
+            .single();
+
+          if (profile) {
+            bakeryId = profile.bakery_id;
+          }
+        }
+
+        // If we still don't have bakeryId, exit
+        if (!bakeryId) {
+          console.warn('[Paystack Webhook] Could not match payment to a bakery:', { customerEmail, amount, plan });
+          break;
+        }
+
+        // Calculate subscription period end date
         const now = new Date();
         const periodEnd = new Date(now);
         if (plan === 'monthly') {
@@ -53,11 +88,11 @@ export async function POST(request: NextRequest) {
           periodEnd.setFullYear(periodEnd.getFullYear() + 1);
         }
 
-        // Update or insert subscription
-        await supabaseAdmin
+        // Activate / update subscription in Supabase
+        const { error: upsertErr } = await supabaseAdmin
           .from('subscriptions')
           .upsert({
-            bakery_id: profile.bakery_id,
+            bakery_id: bakeryId,
             plan,
             status: 'active',
             paystack_customer_id: customer?.customer_code || null,
@@ -65,12 +100,27 @@ export async function POST(request: NextRequest) {
             current_period_end: periodEnd.toISOString(),
           }, { onConflict: 'bakery_id' });
 
+        if (upsertErr) {
+          console.error('[Paystack Webhook] Error updating subscription:', upsertErr);
+        } else {
+          console.log(`[Paystack Webhook] Successfully activated ${plan} plan for bakery ${bakeryId}`);
+        }
+
         break;
       }
 
       case 'subscription.disable': {
-        const { metadata } = event.data;
-        const userId = metadata?.user_id;
+        const { metadata, customer } = event.data;
+        const customerEmail = customer?.email?.toLowerCase();
+        let userId = metadata?.user_id;
+
+        if (!userId && customerEmail) {
+          const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+          const matchedUser = usersData?.users?.find(
+            (u) => u.email?.toLowerCase() === customerEmail
+          );
+          if (matchedUser) userId = matchedUser.id;
+        }
 
         if (!userId) break;
 
@@ -91,8 +141,17 @@ export async function POST(request: NextRequest) {
       }
 
       case 'invoice.payment_failed': {
-        const { metadata } = event.data;
-        const userId = metadata?.user_id;
+        const { metadata, customer } = event.data;
+        const customerEmail = customer?.email?.toLowerCase();
+        let userId = metadata?.user_id;
+
+        if (!userId && customerEmail) {
+          const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+          const matchedUser = usersData?.users?.find(
+            (u) => u.email?.toLowerCase() === customerEmail
+          );
+          if (matchedUser) userId = matchedUser.id;
+        }
 
         if (!userId) break;
 

@@ -110,12 +110,14 @@ export default function PricingPage() {
               <div className="text-4xl font-black text-slate-900 mb-6">
                 R91<span className="text-sm text-slate-500 font-semibold"> / month</span>
               </div>
-              <Link
-                href="/signup"
+              <a
+                href="https://paystack.shop/pay/mz6y9d-cjw"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block w-full py-3.5 px-4 bg-slate-900 hover:bg-[#3D3732] text-white text-center rounded-2xl font-bold transition-all mb-7 shadow-md active:scale-[0.99]"
               >
-                Start Monthly Plan
-              </Link>
+                Subscribe Monthly (R91/mo) →
+              </a>
               <ul className="space-y-4 text-sm text-slate-800">
                 <li className="flex items-start gap-3 font-semibold">
                   <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center rounded-full bg-slate-900 text-white">
@@ -164,12 +166,14 @@ export default function PricingPage() {
               <div className="text-4xl font-black text-slate-900 mb-6">
                 R910<span className="text-sm text-slate-500 font-semibold"> / year</span>
               </div>
-              <Link
-                href="/signup"
+              <a
+                href="https://paystack.shop/pay/l0yv1qgt3y"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block w-full py-3.5 px-4 bg-sand-50 hover:bg-sand-100 text-slate-900 text-center rounded-2xl font-bold transition-all mb-7 border-2 border-[#D8D2C9] shadow-xs active:scale-[0.99]"
               >
-                Start Annual Plan
-              </Link>
+                Subscribe Annual (R910/yr) →
+              </a>
               <ul className="space-y-4 text-sm text-slate-800">
                 <li className="flex items-start gap-3 font-semibold">
                   <div className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center rounded-full bg-[#FAEEDA] text-[#854F0B]">
