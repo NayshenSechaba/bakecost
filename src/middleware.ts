@@ -37,8 +37,8 @@ export async function middleware(request: NextRequest) {
 
   const publicRoutes = ['/login', '/signup', '/auth/callback', '/pricing', '/']
   const pathname = request.nextUrl.pathname
-  const isStaticFile = /\.(?:svg|png|jpg|jpeg|gif|webp|ico|json|txt|woff2?)$/i.test(pathname)
-  const isPublicRoute = isStaticFile || pathname.startsWith('/.well-known') || publicRoutes.some(
+  const isStaticFile = /\.(?:svg|png|jpg|jpeg|gif|webp|ico|json|txt|woff2?|js)$/i.test(pathname)
+  const isPublicRoute = isStaticFile || pathname === '/sw.js' || pathname.startsWith('/.well-known') || publicRoutes.some(
     (route) => pathname === route || pathname.startsWith('/auth/callback')
   )
 
@@ -59,9 +59,9 @@ export const config = {
      * Match all request paths except:
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico, manifest.json, .well-known
-     * - All static file extensions (svg, png, jpg, jpeg, gif, webp, ico)
+     * - favicon.ico, manifest.json, sw.js, .well-known
+     * - All static file extensions (svg, png, jpg, jpeg, gif, webp, ico, js)
      */
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|json)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw\\.js|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|json|js)$).*)',
   ],
 }
