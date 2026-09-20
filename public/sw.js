@@ -1,5 +1,5 @@
 // Doughnomic Service Worker
-const CACHE_NAME = 'doughnomic-cache-v1';
+const CACHE_NAME = 'doughnomic-cache-v2';
 const OFFLINE_URL = '/';
 
 const PRECACHE_ASSETS = [
