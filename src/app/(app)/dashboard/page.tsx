@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { formatZAR } from '@/lib/utils';
+import { formatZAR, formatStockDisplay } from '@/lib/utils';
 import { Recipe, Ingredient, ProductionLog } from '@/types';
 import {
   AlertTriangle,
@@ -240,7 +240,7 @@ export default function DashboardPage() {
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{ing.name}</div>
                       <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                        {ing.current_stock} {ing.unit} left
+                        {formatStockDisplay(ing.current_stock, ing.unit)} left
                       </div>
                     </div>
                     <span className="badge badge-warning">Low</span>

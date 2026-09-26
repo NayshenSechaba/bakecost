@@ -12,6 +12,11 @@ import {
   scaledTotalCost,
   unitLabel,
   calculateLaborCost,
+  calculateScaledLaborCost,
+  calculateScaledElectricityCost,
+  calculateScaledUtilityCost,
+  laborScaleFactor,
+  energyScaleFactor,
 } from '@/lib/utils';
 import {
   ArrowLeft,
@@ -24,6 +29,9 @@ import {
   Clock,
   Briefcase,
   DollarSign,
+  TrendingUp,
+  Zap,
+  Sparkles,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
 import { useAuth } from '@/components/AuthProvider';
@@ -91,7 +99,7 @@ export default function ScaleDetailPage() {
     return batchSize / recipe.base_batch_size;
   }, [recipe, batchSize]);
 
-  // Costs calculation
+  // Costs calculation with Economies of Scale
   const ingredientCost = useMemo(() => {
     return ris.reduce((sum, ri) => {
       const cpu = ri.ingredient.cost_per_unit;
@@ -105,8 +113,9 @@ export default function ScaleDetailPage() {
     return calculateLaborCost(recipe.labor_time_mins, recipe.labor_rate_per_hour);
   }, [recipe]);
 
+  // Scaled labor applying sublinear batch scaling efficiency
   const scaledLaborCost = useMemo(() => {
-    return baseLaborCost * scaleFactor;
+    return calculateScaledLaborCost(baseLaborCost, scaleFactor);
   }, [baseLaborCost, scaleFactor]);
 
   const baseElectricityCost = useMemo(() => {
@@ -114,8 +123,9 @@ export default function ScaleDetailPage() {
     return recipe.electricity_cost ?? 0;
   }, [recipe]);
 
+  // Scaled electricity applying shared oven/heating efficiency
   const scaledElectricityCost = useMemo(() => {
-    return baseElectricityCost * scaleFactor;
+    return calculateScaledElectricityCost(baseElectricityCost, scaleFactor);
   }, [baseElectricityCost, scaleFactor]);
 
   const scaledPackagingCost = useMemo(() => {
@@ -128,8 +138,9 @@ export default function ScaleDetailPage() {
     return recipe.utility_cost ?? 0;
   }, [recipe]);
 
+  // Scaled utilities applying batch efficiency
   const scaledUtilityCost = useMemo(() => {
-    return baseUtilityCost * scaleFactor;
+    return calculateScaledUtilityCost(baseUtilityCost, scaleFactor);
   }, [baseUtilityCost, scaleFactor]);
 
   const totalCost = useMemo(() => {
@@ -140,13 +151,47 @@ export default function ScaleDetailPage() {
     return batchSize > 0 ? totalCost / batchSize : 0;
   }, [totalCost, batchSize]);
 
+  // Unscaled linear baseline for economies of scale comparison
+  const linearTotalCost = useMemo(() => {
+    if (!recipe || recipe.base_batch_size <= 0) return totalCost;
+    const baseTotal = ris.reduce((sum, ri) => sum + ri.quantity_at_base * ri.ingredient.cost_per_unit, 0)
+      + baseLaborCost + baseElectricityCost + baseUtilityCost + (packagingIngredient ? packagingIngredient.cost_per_unit * recipe.base_batch_size : 0);
+    return (baseTotal / recipe.base_batch_size) * batchSize;
+  }, [recipe, ris, baseLaborCost, baseElectricityCost, baseUtilityCost, packagingIngredient, batchSize, totalCost]);
+
+  const baseUnitCost = useMemo(() => {
+    if (!recipe || recipe.base_batch_size <= 0) return costPerUnit;
+    const baseTotal = ris.reduce((sum, ri) => sum + ri.quantity_at_base * ri.ingredient.cost_per_unit, 0)
+      + baseLaborCost + baseElectricityCost + baseUtilityCost + (packagingIngredient ? packagingIngredient.cost_per_unit * recipe.base_batch_size : 0);
+    return baseTotal / recipe.base_batch_size;
+  }, [recipe, ris, baseLaborCost, baseElectricityCost, baseUtilityCost, packagingIngredient, costPerUnit]);
+
+  // Bulk efficiency savings
+  const bulkSavingsTotal = Math.max(0, linearTotalCost - totalCost);
+  const bulkSavingsPerUnit = batchSize > 0 ? bulkSavingsTotal / batchSize : 0;
+  const efficiencyPercent = linearTotalCost > 0 ? (bulkSavingsTotal / linearTotalCost) * 100 : 0;
+
   const price = useMemo(() => {
     return recipe ? suggestedPrice(costPerUnit, recipe.target_margin_pct) : 0;
   }, [recipe, costPerUnit]);
 
+  // Actual profit margin if selling at base standard price
+  const baseSellingPricePerUnit = useMemo(() => {
+    if (!recipe) return price;
+    if (recipe.selling_price && recipe.selling_price > 0 && recipe.base_batch_size > 0) {
+      return recipe.selling_price / recipe.base_batch_size;
+    }
+    return suggestedPrice(baseUnitCost, recipe.target_margin_pct);
+  }, [recipe, baseUnitCost, price]);
+
+  const expandedMarginPct = useMemo(() => {
+    if (baseSellingPricePerUnit <= 0) return recipe?.target_margin_pct ?? 0;
+    return Math.min(99, Math.max(0, ((baseSellingPricePerUnit - costPerUnit) / baseSellingPricePerUnit) * 100));
+  }, [baseSellingPricePerUnit, costPerUnit, recipe]);
+
   const scaledLaborTimeMins = useMemo(() => {
     if (!recipe) return 0;
-    return recipe.labor_time_mins * scaleFactor;
+    return recipe.labor_time_mins * laborScaleFactor(scaleFactor);
   }, [recipe, scaleFactor]);
 
   function adjustBatch(delta: number) {
@@ -380,6 +425,54 @@ export default function ScaleDetailPage() {
                 <div className="price-card-value" style={{ fontSize: 20 }}>{formatZAR(costPerUnit)}</div>
               </div>
             </div>
+
+            {/* Economies of Scale & Bulk Efficiency Card */}
+            {batchSize > recipe.base_batch_size ? (
+              <div className="card" style={{ background: '#EAF5EC', borderColor: '#C3E6CB', padding: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#1E7E34', fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <Zap size={16} className="text-[#1E7E34]" /> Economies of Scale Active
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 700, background: '#1E7E34', color: '#FFFFFF', padding: '2px 8px', borderRadius: 10 }}>
+                    {efficiencyPercent.toFixed(0)}% More Efficient
+                  </span>
+                </div>
+
+                <div style={{ fontSize: 13, color: '#26221F', lineHeight: 1.4 }}>
+                  Batching <strong>{batchSize} units</strong> ({scaleFactor.toFixed(1)}× base) saves <strong style={{ color: '#1E7E34' }}>{formatZAR(bulkSavingsTotal)}</strong> in shared oven energy and consolidated labor.
+                </div>
+
+                <div className="grid-2" style={{ gap: 8, marginTop: 10 }}>
+                  <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: 8, border: '1px solid #C3E6CB' }}>
+                    <div style={{ fontSize: 11, color: '#6F6A63' }}>Unit Cost Reduction</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1E7E34' }}>
+                      {formatZAR(costPerUnit)}{' '}
+                      <span style={{ fontSize: 11, color: '#6F6A63', textDecoration: 'line-through' }}>
+                        {formatZAR(baseUnitCost)}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: 8, border: '1px solid #C3E6CB' }}>
+                    <div style={{ fontSize: 11, color: '#6F6A63' }}>Expanded Profit Margin</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1E7E34' }}>
+                      {expandedMarginPct.toFixed(1)}%{' '}
+                      <span style={{ fontSize: 11, color: '#6F6A63' }}>(+{ (expandedMarginPct - recipe.target_margin_pct).toFixed(1) }%)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 11, color: '#1E7E34', marginTop: 8, fontWeight: 600 }}>
+                  ⏱️ Prep & bake time: <strong>{Math.round(scaledLaborTimeMins)} mins</strong> (vs {Math.round(recipe.labor_time_mins * scaleFactor)} mins if done separately)
+                </div>
+              </div>
+            ) : (
+              <div className="card" style={{ background: '#F4F1EC', borderColor: '#E3DED6', padding: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
+                  <Sparkles size={14} color="var(--accent)" />
+                  <span><strong>Economies of Scale:</strong> Scale up batch size above to see cost-per-unit drops and margin expansion from batching.</span>
+                </div>
+              </div>
+            )}
 
             {/* Cost & Labor Breakdown Details */}
             <div className="card">

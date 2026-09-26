@@ -27,12 +27,15 @@ const WIDGET_CATALOG = [
   { id: 'wastage', label: 'Wastage Summary', icon: AlertTriangle, desc: 'Losses from burnt/expired items.' },
 ] as const;
 
+const DEFAULT_WIDGETS = ['top-products', 'profitability', 'break-even', 'wastage'];
+
 export default function ReportsPage() {
-  const { planLimits } = useAuth();
+  const { bakeryId, planLimits } = useAuth();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showCatalog, setShowCatalog] = useState(false);
   const [settings, setSettings] = useState<BakerySettings | null>(null);
+  const [activeWidgets, setActiveWidgets] = useState<string[]>(DEFAULT_WIDGETS);
   
   // Data State
   const [production, setProduction] = useState<ProductionLog[]>([]);
@@ -61,7 +64,7 @@ export default function ReportsPage() {
         supabase.from('ingredients').select('*'),
         supabase.from('ingredient_price_history').select('*').order('date', { ascending: false }).limit(20),
         supabase.from('wastage_log').select('*').order('date', { ascending: false }),
-        supabase.from('bakery_settings').select('*').limit(1).single()
+        supabase.from('bakery_settings').select('*').limit(1).maybeSingle()
       ]);
 
       if (prodData) setProduction(prodData);
@@ -69,7 +72,13 @@ export default function ReportsPage() {
       if (ingData) setIngredients(ingData);
       if (priceData) setPriceHistory(priceData);
       if (wasteData) setWastage(wasteData);
-      if (settingsData) setSettings(settingsData);
+      
+      if (settingsData) {
+        setSettings(settingsData);
+        if (Array.isArray(settingsData.report_widgets_config) && settingsData.report_widgets_config.length > 0) {
+          setActiveWidgets(settingsData.report_widgets_config);
+        }
+      }
     } catch (error) {
       console.error('Error fetching analytics:', error);
     } finally {
@@ -77,21 +86,31 @@ export default function ReportsPage() {
     }
   };
 
-  const saveWidgetConfig = async (newWidgets: string[]) => {
-    if (!settings) return;
-    const updated = { ...settings, report_widgets_config: newWidgets };
-    setSettings(updated);
+  const toggleWidget = async (id: string) => {
+    const newWidgets = activeWidgets.includes(id) 
+      ? activeWidgets.filter(w => w !== id)
+      : [...activeWidgets, id];
     
-    const supabase = createClient();
-    await supabase.from('bakery_settings').update({ report_widgets_config: newWidgets }).eq('id', settings.id);
-  };
+    // Instant UI update
+    setActiveWidgets(newWidgets);
 
-  const toggleWidget = (id: string) => {
-    const active = settings?.report_widgets_config || [];
-    const newWidgets = active.includes(id) 
-      ? active.filter(w => w !== id)
-      : [...active, id];
-    saveWidgetConfig(newWidgets);
+    const supabase = createClient();
+    try {
+      if (settings?.id) {
+        setSettings({ ...settings, report_widgets_config: newWidgets });
+        await supabase.from('bakery_settings').update({ report_widgets_config: newWidgets }).eq('id', settings.id);
+      } else {
+        const payload: any = {
+          report_widgets_config: newWidgets,
+          monthly_overhead_target: 5000,
+        };
+        if (bakeryId) payload.bakery_id = bakeryId;
+        const { data } = await supabase.from('bakery_settings').insert(payload).select().single();
+        if (data) setSettings(data);
+      }
+    } catch (err) {
+      console.error('Failed to persist widget config:', err);
+    }
   };
 
   const handleExportCSV = () => {
@@ -111,7 +130,6 @@ export default function ReportsPage() {
   };
 
   const exportCSV = () => {
-    // Basic CSV export for production logs as an example
     if (!production.length) return alert('No data to export');
     const headers = ['Date', 'Recipe', 'Batch Size', 'Total Cost', 'Notes'];
     const rows = production.map(p => [
@@ -132,8 +150,6 @@ export default function ReportsPage() {
   };
 
   if (loading) return <div className="p-6 text-center text-gray-500">Loading Analytics...</div>;
-
-  const activeWidgets = settings?.report_widgets_config || [];
 
   // Data Processing for Widgets
   const topProductsData = production.reduce((acc, log) => {

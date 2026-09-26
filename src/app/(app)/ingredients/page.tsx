@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { formatZAR, unitLabel, stockStatus } from '@/lib/utils';
+import { formatZAR, unitLabel, stockStatus, formatStockDisplay } from '@/lib/utils';
 import { Ingredient, Unit } from '@/types';
 import {
   Plus,
@@ -16,6 +16,8 @@ import {
   RotateCcw,
   Sparkles,
   Search,
+  Scale,
+  Package,
 } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/Toast';
 import { useAuth } from '@/components/AuthProvider';
@@ -110,6 +112,12 @@ export default function IngredientsPage() {
   const [packSize, setPackSize] = useState('');
   const [packUnit, setPackUnit] = useState<Unit>('kg');
 
+  // Stock Units & Weight Calculator States
+  const [stockMode, setStockMode] = useState<'packs' | 'direct'>('packs');
+  const [stockPackCount, setStockPackCount] = useState('');
+  const [stockPackSize, setStockPackSize] = useState('');
+  const [stockPackUnit, setStockPackUnit] = useState<Unit>('kg');
+
   // Scanner States
   const [showScanner, setShowScanner] = useState(false);
   const [scanState, setScanState] = useState<'idle' | 'scanning' | 'success'>('idle');
@@ -164,6 +172,43 @@ export default function IngredientsPage() {
     }
   }, [calculatedCostInfo]);
 
+  // Stock Pack Live Calculator
+  const calculatedStockInfo = useMemo(() => {
+    const count = parseFloat(stockPackCount);
+    const size = parseFloat(stockPackSize);
+    if (isNaN(count) || count <= 0 || isNaN(size) || size <= 0) return null;
+
+    let multiplier = 1;
+    if (form.unit === 'g' && stockPackUnit === 'kg') {
+      multiplier = 1000;
+    } else if (form.unit === 'ml' && stockPackUnit === 'l') {
+      multiplier = 1000;
+    } else if (form.unit === 'kg' && stockPackUnit === 'g') {
+      multiplier = 0.001;
+    } else if (form.unit === 'l' && stockPackUnit === 'ml') {
+      multiplier = 0.001;
+    }
+
+    const totalBaseStock = count * size * multiplier;
+    return {
+      count,
+      size,
+      unit: stockPackUnit,
+      totalBaseStock,
+      totalWeightDisplay: formatStockDisplay(totalBaseStock, form.unit),
+    };
+  }, [stockPackCount, stockPackSize, stockPackUnit, form.unit]);
+
+  // Auto-sync calculated stock to form
+  const applyPackStock = () => {
+    if (calculatedStockInfo) {
+      setForm((prev) => ({
+        ...prev,
+        current_stock: String(calculatedStockInfo.totalBaseStock),
+      }));
+    }
+  };
+
   // Simulated Scanning Engine
   const startScan = (preset: typeof SCAN_PRESETS[0]) => {
     setScanningPreset(preset);
@@ -176,17 +221,23 @@ export default function IngredientsPage() {
           clearInterval(interval);
           setScanState('success');
           // Auto populate values
+          const baseMultiplier = preset.packUnit === 'kg' || preset.packUnit === 'l' ? 1000 : 1;
+          const totalStock = parseFloat(preset.packSize) * baseMultiplier;
           setForm({
             name: preset.name,
             unit: preset.unit,
-            cost_per_unit: (parseFloat(preset.price) / (parseFloat(preset.packSize) * (preset.packUnit === 'kg' || preset.packUnit === 'l' ? 1000 : 1))).toFixed(5),
-            current_stock: preset.packSize, // assume opening stock is 1 pack
-            low_stock_threshold: '1',
+            cost_per_unit: (parseFloat(preset.price) / (parseFloat(preset.packSize) * baseMultiplier)).toFixed(5),
+            current_stock: String(totalStock), // 1 pack in base weight
+            low_stock_threshold: String(baseMultiplier), // alert at 1 pack
           });
           setPackPrice(preset.price);
           setPackSize(preset.packSize);
           setPackUnit(preset.packUnit);
           setShowPackHelper(true);
+          
+          setStockPackCount('1');
+          setStockPackSize(preset.packSize);
+          setStockPackUnit(preset.packUnit);
           
           addToast(`Successfully scanned ${preset.name}!`, 'success');
           setTimeout(() => {
@@ -212,6 +263,10 @@ export default function IngredientsPage() {
     setPackSize('');
     setPackUnit('kg');
     setShowPackHelper(false);
+    setStockMode('packs');
+    setStockPackCount('1');
+    setStockPackSize('1');
+    setStockPackUnit('kg');
     setShowModal(true);
   }
 
@@ -228,6 +283,10 @@ export default function IngredientsPage() {
     setPackSize('');
     setPackUnit(ing.unit === 'g' ? 'kg' : ing.unit === 'ml' ? 'l' : ing.unit);
     setShowPackHelper(false);
+    setStockMode('direct');
+    setStockPackCount('');
+    setStockPackSize('');
+    setStockPackUnit(ing.unit === 'g' ? 'kg' : ing.unit === 'ml' ? 'l' : ing.unit);
     setShowModal(true);
   }
 
@@ -342,9 +401,9 @@ export default function IngredientsPage() {
                         {formatZAR(ing.cost_per_unit)} / {unitLabel(ing.unit)}
                       </div>
                       <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
-                        Stock: <strong style={{ color: 'var(--text-primary)' }}>{ing.current_stock}</strong> {unitLabel(ing.unit)}
+                        Stock: <strong style={{ color: 'var(--text-primary)' }}>{formatStockDisplay(ing.current_stock, ing.unit)}</strong>
                         {ing.low_stock_threshold > 0 && (
-                          <span style={{ color: 'var(--text-muted)' }}> · alert under {ing.low_stock_threshold}</span>
+                          <span style={{ color: 'var(--text-muted)' }}> · alert under {formatStockDisplay(ing.low_stock_threshold, ing.unit)}</span>
                         )}
                       </div>
                     </div>
@@ -505,28 +564,136 @@ export default function IngredientsPage() {
                 )}
               </div>
 
-              <div className="grid-2">
-                <div className="input-group">
-                  <label className="input-label">Current Stock</label>
-                  <input
-                    className="input"
-                    type="number"
-                    min="0"
-                    placeholder="0"
-                    value={form.current_stock}
-                    onChange={(e) => setForm({ ...form, current_stock: e.target.value })}
-                  />
+              {/* Dual Unit & Weight Stock Entry Helper */}
+              <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-sm)', padding: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Package size={15} color="var(--accent)" /> Stock Entry (Packs or Weight)
+                  </span>
+                  <div style={{ display: 'flex', gap: 4, background: 'var(--bg-card)', padding: 2, borderRadius: 8, border: '1px solid var(--border)' }}>
+                    <button
+                      type="button"
+                      onClick={() => setStockMode('packs')}
+                      className={`btn btn-xs ${stockMode === 'packs' ? 'btn-primary' : 'btn-ghost'}`}
+                      style={{ padding: '2px 8px', fontSize: 11, height: 24 }}
+                    >
+                      Bags / Packs
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStockMode('direct')}
+                      className={`btn btn-xs ${stockMode === 'direct' ? 'btn-primary' : 'btn-ghost'}`}
+                      style={{ padding: '2px 8px', fontSize: 11, height: 24 }}
+                    >
+                      Direct Weight
+                    </button>
+                  </div>
                 </div>
-                <div className="input-group">
-                  <label className="input-label">Low-Stock Alert</label>
+
+                {stockMode === 'packs' ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div className="grid-2">
+                      <div className="input-group">
+                        <label className="input-label">Number of Packs / Bags</label>
+                        <input
+                          className="input"
+                          type="number"
+                          min="0"
+                          step="1"
+                          placeholder="e.g. 5"
+                          value={stockPackCount}
+                          onChange={(e) => {
+                            setStockPackCount(e.target.value);
+                            const count = parseFloat(e.target.value);
+                            const size = parseFloat(stockPackSize);
+                            if (!isNaN(count) && !isNaN(size) && count >= 0 && size > 0) {
+                              const mult = (form.unit === 'g' && stockPackUnit === 'kg') || (form.unit === 'ml' && stockPackUnit === 'l') ? 1000 : 1;
+                              setForm(prev => ({ ...prev, current_stock: String(count * size * mult) }));
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="input-group">
+                        <label className="input-label">Size per pack</label>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <input
+                            className="input"
+                            type="number"
+                            step="any"
+                            placeholder="e.g. 2.5"
+                            style={{ flex: 1 }}
+                            value={stockPackSize}
+                            onChange={(e) => {
+                              setStockPackSize(e.target.value);
+                              const count = parseFloat(stockPackCount);
+                              const size = parseFloat(e.target.value);
+                              if (!isNaN(count) && !isNaN(size) && count >= 0 && size > 0) {
+                                const mult = (form.unit === 'g' && stockPackUnit === 'kg') || (form.unit === 'ml' && stockPackUnit === 'l') ? 1000 : 1;
+                                setForm(prev => ({ ...prev, current_stock: String(count * size * mult) }));
+                              }
+                            }}
+                          />
+                          <select 
+                            className="input" 
+                            style={{ width: 85, padding: '12px 6px' }}
+                            value={stockPackUnit}
+                            onChange={(e) => {
+                              const newUnit = e.target.value as Unit;
+                              setStockPackUnit(newUnit);
+                              const count = parseFloat(stockPackCount);
+                              const size = parseFloat(stockPackSize);
+                              if (!isNaN(count) && !isNaN(size) && count >= 0 && size > 0) {
+                                const mult = (form.unit === 'g' && newUnit === 'kg') || (form.unit === 'ml' && newUnit === 'l') ? 1000 : 1;
+                                setForm(prev => ({ ...prev, current_stock: String(count * size * mult) }));
+                              }
+                            }}
+                          >
+                            {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {calculatedStockInfo && (
+                      <div style={{ background: 'var(--accent-subtle)', borderRadius: 6, padding: '8px 12px', fontSize: 12, color: 'var(--text-primary)', border: '1px solid rgba(232, 168, 56, 0.2)' }}>
+                        📦 <strong>{calculatedStockInfo.count} pack(s)</strong> of <strong>{calculatedStockInfo.size} {calculatedStockInfo.unit}</strong> = <strong style={{ color: 'var(--accent)' }}>{calculatedStockInfo.totalWeightDisplay}</strong> total stock
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="input-group">
+                    <label className="input-label">Total Stock ({unitLabel(form.unit)})</label>
+                    <input
+                      className="input"
+                      type="number"
+                      min="0"
+                      step="any"
+                      placeholder={`Total in ${form.unit}`}
+                      value={form.current_stock}
+                      onChange={(e) => setForm({ ...form, current_stock: e.target.value })}
+                    />
+                    {form.current_stock && !isNaN(Number(form.current_stock)) && Number(form.current_stock) > 0 && (
+                      <div style={{ fontSize: 12, color: 'var(--accent)', marginTop: 4, fontWeight: 600 }}>
+                        📊 Formatted: {formatStockDisplay(Number(form.current_stock), form.unit)}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="input-group" style={{ marginTop: 12 }}>
+                  <label className="input-label">Low-Stock Alert Trigger ({unitLabel(form.unit)})</label>
                   <input
                     className="input"
                     type="number"
                     min="0"
-                    placeholder="0"
+                    step="any"
+                    placeholder={`e.g. ${form.unit === 'g' ? '1000' : '1'}`}
                     value={form.low_stock_threshold}
                     onChange={(e) => setForm({ ...form, low_stock_threshold: e.target.value })}
                   />
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    You will be alerted on Dashboard when available stock falls below this amount.
+                  </span>
                 </div>
               </div>
 
