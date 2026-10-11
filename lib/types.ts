@@ -1,0 +1,112 @@
+export type Unit = 'g' | 'kg' | 'ml' | 'l' | 'unit';
+
+export interface Bakery {
+  id: string;
+  name: string;
+  created_at?: string;
+}
+
+export interface Profile {
+  id: string;
+  bakery_id: string;
+  role: 'owner' | 'staff';
+  created_at?: string;
+}
+
+export interface Ingredient {
+  id: string;
+  bakery_id?: string;
+  name: string;
+  unit: Unit;
+  cost_per_unit: number;
+  current_stock: number;
+  low_stock_threshold: number;
+  created_at?: string;
+}
+
+export interface Recipe {
+  id: string;
+  bakery_id?: string;
+  name: string;
+  photo_path?: string | null;
+  base_batch_size: number;
+  target_margin_pct: number;
+  labor_time_mins: number;
+  labor_rate_per_hour: number;
+  electricity_cost: number;
+  utility_cost: number;
+  selling_price: number;
+  packaging_ingredient_id?: string | null;
+  created_at?: string;
+}
+
+export interface RecipeIngredient {
+  id: string;
+  recipe_id: string;
+  ingredient_id: string;
+  quantity_at_base: number;
+  ingredient?: Ingredient;
+}
+
+export interface ProductionLog {
+  id: string;
+  bakery_id?: string;
+  recipe_id: string;
+  batch_size_made: number;
+  date?: string;
+  total_cost?: number;
+  notes?: string;
+  created_at?: string;
+  recipe?: Recipe;
+}
+
+export interface WastageLog {
+  id: string;
+  bakery_id?: string;
+  item_type: 'ingredient' | 'recipe' | 'other';
+  item_id?: string;
+  item_name: string;
+  quantity: number;
+  unit?: string;
+  cost_lost: number;
+  reason?: string;
+  date?: string;
+  created_at?: string;
+}
+
+export interface IngredientPriceHistory {
+  id: string;
+  ingredient_id: string;
+  old_price: number;
+  new_price: number;
+  date?: string;
+}
+
+export interface BakerySettings {
+  id: string;
+  bakery_id?: string;
+  monthly_overhead_target: number;
+  report_widgets_config: string[];
+  updated_at?: string;
+}
+
+export interface Subscription {
+  id: string;
+  bakery_id: string;
+  plan: 'free' | 'monthly' | 'annual';
+  status: 'active' | 'cancelled' | 'expired' | 'past_due';
+  paystack_customer_id?: string;
+  current_period_start?: string;
+  current_period_end?: string;
+  created_at?: string;
+}
+
+export interface BakeryInvite {
+  id: string;
+  bakery_id: string;
+  invited_email: string;
+  invited_by: string;
+  role: 'owner' | 'staff';
+  status: 'pending' | 'accepted' | 'revoked';
+  created_at?: string;
+}
